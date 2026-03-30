@@ -1,0 +1,43 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .docker/php/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DRUPAL_DB_DRIVER: mysql
+      DRUPAL_DB_HOST: db
+      DRUPAL_DB_PORT: 3306
+      DRUPAL_DB_NAME: ${DB_NAME:-rook_servicechannel}
+      DRUPAL_DB_USER: ${DB_USER:-rook}
+      DRUPAL_DB_PASSWORD: ${DB_PASSWORD:-rook}
+      DRUPAL_HASH_SALT: ${DRUPAL_HASH_SALT:-change-me-before-sharing}
+      DRUPAL_TRUSTED_HOST_PATTERN: ${DRUPAL_TRUSTED_HOST_PATTERN:-^localhost$}
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+
+  db:
+    image: mariadb:11.4
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-rook_servicechannel}
+      MARIADB_USER: ${DB_USER:-rook}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-rook}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - ./.docker/db-data:/var/lib/mysql

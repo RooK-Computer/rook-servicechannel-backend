@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+$settings['skip_permissions_hardening'] = TRUE;
+$settings['rebuild_access'] = TRUE;
+
+$config['system.logging']['error_level'] = 'verbose';
+
+$settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.local.yml';

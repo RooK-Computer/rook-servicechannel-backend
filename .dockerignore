@@ -1,0 +1,10 @@
+.git
+.gitmodules
+spec
+vendor
+docroot
+configurations
+private
+plans
+recipes
+.docker/db-data

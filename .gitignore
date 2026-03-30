@@ -1,0 +1,11 @@
+/docroot/sites/default/files/*
+!/docroot/sites/default/files/.gitignore
+/docroot/sites/default/settings.local.php
+/.env
+/.phpunit.result.cache
+/.docker/db-data/*
+!/.docker/db-data/.gitignore
+/private/*
+!/private/.gitignore
+/.editorconfig
+/.gitattributes
