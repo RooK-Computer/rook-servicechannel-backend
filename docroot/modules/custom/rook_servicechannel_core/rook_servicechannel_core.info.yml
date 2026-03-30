@@ -1,0 +1,7 @@
+name: RooK Service Channel Core
+type: module
+description: Core domain model for support sessions, terminal grants, and audit data.
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:user

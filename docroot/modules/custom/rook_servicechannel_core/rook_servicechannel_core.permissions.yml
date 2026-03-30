@@ -1,0 +1,3 @@
+administer rook service channel:
+  title: Administer RooK service channel domain data
+  description: Manage RooK support sessions, grants, and related operational data.

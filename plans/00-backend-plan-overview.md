@@ -26,6 +26,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 
 4. Web-API und Zugriffskontrolle
    * siehe `04-web-api-and-access-control.md`
+   * einschliesslich Anlage der Drupal-Rolle `Service`
 
 5. Gateway-Validierung und Laufzeitjobs
    * siehe `05-gateway-validation-and-runtime-jobs.md`

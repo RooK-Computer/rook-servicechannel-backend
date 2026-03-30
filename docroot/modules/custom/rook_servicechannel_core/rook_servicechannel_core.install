@@ -1,0 +1,157 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Install, update and uninstall functions for rook_servicechannel_core.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function rook_servicechannel_core_schema(): array {
+  $schema['rook_support_session_participant'] = [
+    'description' => 'Tracks which Drupal users are currently coupled to a support session.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'support_session_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'user_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'state' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ],
+      'coupled_at' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'last_seen_at' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'released_at' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'rook_session_participant__session' => ['support_session_id'],
+      'rook_session_participant__user' => ['user_id'],
+      'rook_session_participant__state' => ['state'],
+      'rook_session_participant__session_user_state' => ['support_session_id', 'user_id', 'state'],
+    ],
+  ];
+
+  $schema['rook_support_audit_log'] = [
+    'description' => 'Append-only audit log for support session and grant lifecycle events.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'support_session_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'terminal_grant_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'user_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ],
+      'event_type' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ],
+      'ip_address' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => FALSE,
+      ],
+      'payload_json' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ],
+      'created_at' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'rook_support_audit_log__session' => ['support_session_id'],
+      'rook_support_audit_log__grant' => ['terminal_grant_id'],
+      'rook_support_audit_log__user' => ['user_id'],
+      'rook_support_audit_log__event' => ['event_type'],
+      'rook_support_audit_log__created' => ['created_at'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Ensures a fieldable entity type is installed if its schema is still missing.
+ */
+function _rook_servicechannel_core_install_missing_entity_type(string $entity_type_id): void {
+  $entity_type_manager = \Drupal::entityTypeManager();
+  $entity_definition_update_manager = \Drupal::entityDefinitionUpdateManager();
+  $field_manager = \Drupal::service('entity_field.manager');
+  $entity_type = $entity_type_manager->getDefinition($entity_type_id);
+
+  if (!\Drupal::database()->schema()->tableExists($entity_type->getBaseTable())) {
+    $entity_definition_update_manager->installFieldableEntityType(
+      $entity_type,
+      $field_manager->getFieldStorageDefinitions($entity_type_id),
+    );
+  }
+}
+
+/**
+ * Ensures hook_schema tables exist even after an interrupted first install.
+ */
+function _rook_servicechannel_core_install_missing_schema_tables(): void {
+  $schema = rook_servicechannel_core_schema();
+  $database_schema = \Drupal::database()->schema();
+
+  foreach ($schema as $table_name => $table_schema) {
+    if (!$database_schema->tableExists($table_name)) {
+      $database_schema->createTable($table_name, $table_schema);
+    }
+  }
+}
+
+/**
+ * Repairs missing schema objects from interrupted early installs.
+ */
+function rook_servicechannel_core_update_11001(): void {
+  _rook_servicechannel_core_install_missing_entity_type('support_session');
+  _rook_servicechannel_core_install_missing_entity_type('terminal_grant');
+  _rook_servicechannel_core_install_missing_schema_tables();
+}

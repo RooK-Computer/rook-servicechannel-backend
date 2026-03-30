@@ -1,0 +1,104 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\rook_servicechannel_core\Service;
+
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\rook_servicechannel_core\Entity\SupportSession;
+use Drupal\rook_servicechannel_core\Entity\TerminalGrant;
+use Drupal\rook_servicechannel_core\TerminalGrantStatus;
+use Drupal\user\UserInterface;
+
+final class TerminalGrantManager {
+
+  public function __construct(
+    private readonly EntityTypeManagerInterface $entityTypeManager,
+    private readonly TimeInterface $time,
+  ) {}
+
+  /**
+   * Issues a new terminal grant and returns the entity plus plain token.
+   *
+   * @return array{grant: \Drupal\rook_servicechannel_core\Entity\TerminalGrant, token: string}
+   *   The persisted grant and the one-time plain token.
+   */
+  public function issueGrant(
+    SupportSession $session,
+    UserInterface $account,
+    string $consoleIpAddress,
+    int $expiresAt,
+    int $reconnectValidUntil,
+  ): array {
+    $token = bin2hex(random_bytes(32));
+
+    /** @var \Drupal\rook_servicechannel_core\Entity\TerminalGrant $grant */
+    $grant = $this->entityTypeManager
+      ->getStorage('terminal_grant')
+      ->create([
+        'token_hash' => hash('sha256', $token),
+        'support_session_id' => $session->id(),
+        'user_id' => $account->id(),
+        'console_ip_address' => $consoleIpAddress,
+        'status' => TerminalGrantStatus::ISSUED,
+        'issued_at' => $this->time->getRequestTime(),
+        'expires_at' => $expiresAt,
+        'reconnect_valid_until' => $reconnectValidUntil,
+      ]);
+
+    $grant->save();
+
+    return [
+      'grant' => $grant,
+      'token' => $token,
+    ];
+  }
+
+  /**
+   * Marks a grant as redeemed.
+   */
+  public function redeemGrant(TerminalGrant $grant): TerminalGrant {
+    $now = $this->time->getRequestTime();
+
+    $grant->set('status', TerminalGrantStatus::REDEEMED);
+    if ($grant->get('redeemed_at')->isEmpty()) {
+      $grant->set('redeemed_at', $now);
+    }
+    $grant->set('last_used_at', $now);
+    $grant->save();
+
+    return $grant;
+  }
+
+  /**
+   * Refreshes the "last used" timestamp for a grant.
+   */
+  public function markGrantUsed(TerminalGrant $grant): TerminalGrant {
+    $grant->set('last_used_at', $this->time->getRequestTime());
+    $grant->save();
+
+    return $grant;
+  }
+
+  /**
+   * Marks a grant as revoked.
+   */
+  public function revokeGrant(TerminalGrant $grant): TerminalGrant {
+    $grant->set('status', TerminalGrantStatus::REVOKED);
+    $grant->save();
+
+    return $grant;
+  }
+
+  /**
+   * Marks a grant as expired.
+   */
+  public function expireGrant(TerminalGrant $grant): TerminalGrant {
+    $grant->set('status', TerminalGrantStatus::EXPIRED);
+    $grant->save();
+
+    return $grant;
+  }
+
+}

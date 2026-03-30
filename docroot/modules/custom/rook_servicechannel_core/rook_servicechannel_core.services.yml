@@ -1,0 +1,12 @@
+services:
+  rook_servicechannel_core.support_session_manager:
+    class: Drupal\rook_servicechannel_core\Service\SupportSessionManager
+    arguments: ['@entity_type.manager', '@datetime.time']
+
+  rook_servicechannel_core.terminal_grant_manager:
+    class: Drupal\rook_servicechannel_core\Service\TerminalGrantManager
+    arguments: ['@entity_type.manager', '@datetime.time']
+
+  rook_servicechannel_core.audit_log_writer:
+    class: Drupal\rook_servicechannel_core\Service\AuditLogWriter
+    arguments: ['@database', '@datetime.time']

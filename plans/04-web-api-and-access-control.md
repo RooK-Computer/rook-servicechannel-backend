@@ -19,25 +19,30 @@ Die vom RooK-Team verwendeten REST-Endpunkte samt Rollenpruefung, Session-Kopplu
 * `POST /api/client/1/pinlookup`
 * `POST /api/client/1/sessionstatus`
 * `POST /api/client/1/requestshell`
+* Drupal-Rolle `Service` fuer berechtigte Servicemitarbeiter
 
 ## Konkrete Arbeitsschritte
 
-1. Zugriff auf die Endpunkte auf authentisierte Drupal-Benutzer mit Rolle `Service` begrenzen.
-2. `pinlookup` so umsetzen, dass eine Session per PIN gefunden und fuer den Mitarbeiter gekoppelt oder reserviert werden kann.
-3. `sessionstatus` auf die aus dem Frontend sichtbare Session-Sicht abbilden.
-4. `requestshell` so umsetzen, dass ein opaques Terminal-Token erzeugt wird, das Benutzer und Session bindet.
-5. Regeln fuer parallele Sessions pro Mitarbeiter und mehrere Mitarbeiter pro Session sauber abbilden.
-6. Unklare Request-/Response-Details explizit dokumentieren und im Code kapseln.
+1. Drupal-Rolle `Service` als Teil des Backends explizit anlegen.
+2. Initiale Permissions fuer diese Rolle definieren und ueber Install-/Update-Pfade des Projekts reproduzierbar machen.
+3. Zugriff auf die Endpunkte auf authentisierte Drupal-Benutzer mit Rolle `Service` begrenzen.
+4. `pinlookup` so umsetzen, dass eine Session per PIN gefunden und fuer den Mitarbeiter gekoppelt oder reserviert werden kann.
+5. `sessionstatus` auf die aus dem Frontend sichtbare Session-Sicht abbilden.
+6. `requestshell` so umsetzen, dass ein opaques Terminal-Token erzeugt wird, das Benutzer und Session bindet.
+7. Regeln fuer parallele Sessions pro Mitarbeiter und mehrere Mitarbeiter pro Session sauber abbilden.
+8. Unklare Request-/Response-Details explizit dokumentieren und im Code kapseln.
 
 ## Erwartete Artefakte
 
 * Client-REST-Routen
+* Installations- oder Update-Code fuer die Rolle `Service`
 * Zugriffskontrolllogik auf Drupal-Rollenbasis
 * Services fuer Session-Kopplung und Grant-Erzeugung
 * Tests fuer Rollenpruefung, PIN-Kopplung und Token-Ausgabe
 
 ## Validierung
 
+* Die Rolle `Service` wird im System reproduzierbar angelegt.
 * Nutzer ohne Rolle `Service` erhalten keinen Zugriff.
 * Ein gueltiger PIN koppelt eine Session erfolgreich.
 * `requestshell` liefert ein Token fuer eine passende Session und einen passenden Benutzer.
@@ -50,6 +55,7 @@ Die vom RooK-Team verwendeten REST-Endpunkte samt Rollenpruefung, Session-Kopplu
 
 ## Uebergabe an Folgepakete
 
+* dokumentiert, wo und wie die Rolle `Service` angelegt wird
 * dokumentiertes Mapping zwischen Drupal-Usern, Sessions und Grants
 * bekannte offene API-Detailfragen
 * sichtbare Unterschiede zwischen Frontend-Sicht und internem Domain-Modell
