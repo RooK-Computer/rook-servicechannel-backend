@@ -56,6 +56,31 @@ final class TerminalGrantManager {
   }
 
   /**
+   * Loads a persisted grant by its plain token.
+   */
+  public function loadGrantByToken(string $token): ?TerminalGrant {
+    $ids = $this->entityTypeManager
+      ->getStorage('terminal_grant')
+      ->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('token_hash', hash('sha256', $token))
+      ->sort('id', 'DESC')
+      ->range(0, 1)
+      ->execute();
+
+    if ($ids === []) {
+      return NULL;
+    }
+
+    /** @var \Drupal\rook_servicechannel_core\Entity\TerminalGrant|null $grant */
+    $grant = $this->entityTypeManager
+      ->getStorage('terminal_grant')
+      ->load((int) reset($ids));
+
+    return $grant;
+  }
+
+  /**
    * Revokes still-active grants for the same session and user.
    */
   public function revokeOutstandingGrants(SupportSession $session, UserInterface $account): void {

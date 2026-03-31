@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Hooks for rook_servicechannel_gateway_api.
+ */
+
+/**
+ * Implements hook_cron().
+ */
+function rook_servicechannel_gateway_api_cron(): void {
+  \Drupal::service('rook_servicechannel_gateway_api.runtime_maintenance_manager')->runMaintenance();
+}

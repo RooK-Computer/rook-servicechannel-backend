@@ -1,0 +1,7 @@
+name: RooK Service Channel Gateway API
+type: module
+description: Gateway-facing API for validating terminal grants and running grant cleanup.
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - rook_servicechannel_core:rook_servicechannel_core

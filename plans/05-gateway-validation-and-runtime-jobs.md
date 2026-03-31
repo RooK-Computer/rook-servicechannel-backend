@@ -48,6 +48,23 @@ Die Gateway-seitige Token-Validierung sowie die noetigen Laufzeitmechanismen fue
 * endgueltige Revocation-Semantik
 * Fehlerklassifikation bei Gateway- oder Backend-Ausfaellen
 
+## Umgesetztes Initialergebnis
+
+Folgende Artefakte wurden fuer die erste Gateway- und Runtime-Umsetzung angelegt:
+
+* `docroot/modules/custom/rook_servicechannel_gateway_api/`
+* Gateway-Route `POST /api/gateway/1/validateToken`
+* Validierungsservice fuer Token-Pruefung, Redeem und Reconnect innerhalb des Grace-Fensters
+* Runtime-Maintenance fuer Grant-Expiry und das Aufraeumen alter geschlossener Sessions
+* Kernel- und OpenAPI-Contract-Tests fuer Gateway-Validierung und Maintenance
+
+Wichtige Umsetzungsentscheidung:
+
+* Ein erstmalig validierter Grant wird beim ersten erfolgreichen `validateToken` direkt auf `redeemed` gesetzt.
+* Ein bereits eingelöster Grant darf innerhalb des bestehenden `reconnect_valid_until`-Fensters erneut validiert werden.
+* Abgelaufene Grants werden auf `expired` gesetzt, bereits eingelöste Grants ausserhalb des Reconnect-Fensters werden abgewiesen und widerrufen.
+* Geschlossene Sessions werden nach einer Stunde geloescht; zugehoerige Teilnehmer- und Grant-Daten werden dabei technisch mit aufgeraeumt.
+
 ## Uebergabe an Folgepakete
 
 * dokumentierte Reconnect- und Revocation-Regeln

@@ -1,0 +1,8 @@
+services:
+  rook_servicechannel_gateway_api.gateway_grant_validator:
+    class: Drupal\rook_servicechannel_gateway_api\Service\GatewayGrantValidator
+    arguments: ['@datetime.time', '@entity_type.manager', '@rook_servicechannel_core.support_session_manager', '@rook_servicechannel_core.terminal_grant_manager']
+
+  rook_servicechannel_gateway_api.runtime_maintenance_manager:
+    class: Drupal\rook_servicechannel_gateway_api\Service\RuntimeMaintenanceManager
+    arguments: ['@datetime.time', '@database', '@entity_type.manager', '@rook_servicechannel_core.support_session_manager', '@rook_servicechannel_core.terminal_grant_manager']

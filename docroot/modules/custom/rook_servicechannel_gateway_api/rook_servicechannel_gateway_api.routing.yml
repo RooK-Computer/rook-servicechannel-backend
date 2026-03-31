@@ -1,0 +1,7 @@
+rook_servicechannel_gateway_api.validate_token:
+  path: '/api/gateway/1/validateToken'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_gateway_api\Controller\GatewayGrantController::validateToken'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
