@@ -56,6 +56,36 @@ final class TerminalGrantManager {
   }
 
   /**
+   * Revokes still-active grants for the same session and user.
+   */
+  public function revokeOutstandingGrants(SupportSession $session, UserInterface $account): void {
+    $ids = $this->entityTypeManager
+      ->getStorage('terminal_grant')
+      ->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('support_session_id', (int) $session->id())
+      ->condition('user_id', (int) $account->id())
+      ->condition('status', [
+        TerminalGrantStatus::ISSUED,
+        TerminalGrantStatus::REDEEMED,
+      ], 'IN')
+      ->execute();
+
+    if ($ids === []) {
+      return;
+    }
+
+    /** @var \Drupal\rook_servicechannel_core\Entity\TerminalGrant[] $grants */
+    $grants = $this->entityTypeManager
+      ->getStorage('terminal_grant')
+      ->loadMultiple($ids);
+
+    foreach ($grants as $grant) {
+      $this->revokeGrant($grant);
+    }
+  }
+
+  /**
    * Marks a grant as redeemed.
    */
   public function redeemGrant(TerminalGrant $grant): TerminalGrant {

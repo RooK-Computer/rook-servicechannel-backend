@@ -1,0 +1,8 @@
+name: RooK Service Channel Client API
+type: module
+description: Service-user-facing web API for session lookup, status, and terminal grants.
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:user
+  - rook_servicechannel_core:rook_servicechannel_core

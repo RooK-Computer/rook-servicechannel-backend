@@ -44,7 +44,7 @@ This repository contains the Drupal-based backend for the RooK Service Channel.
 
 If you use different database values in `.env`, adjust the `--db-url` accordingly.
 
-After that, the application is available at `http://localhost:8080` or on the `APP_PORT` defined in `.env`.
+After that, the application is available on the local app port defined by `APP_PORT` in `.env` (for example `http://localhost:8080` if you keep the default).
 
 ### Recreate a site from the exported configuration
 
@@ -96,7 +96,7 @@ Important notes:
 * Check HTTP availability:
 
   ```bash
-  curl -I http://localhost:8080
+  curl -I "http://localhost:${APP_PORT:-8080}"
   ```
 
 ### Local default credentials after the example installation

@@ -1,0 +1,3 @@
+access rook client api:
+  title: Access RooK client API
+  description: Use the service frontend API endpoints for session lookup and terminal access.

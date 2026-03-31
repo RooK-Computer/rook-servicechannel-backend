@@ -1,0 +1,26 @@
+rook_servicechannel_client_api.pinlookup:
+  path: '/api/client/1/pinlookup'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_client_api\Controller\ClientSessionController::pinLookup'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook client api'
+  methods: [POST]
+
+rook_servicechannel_client_api.sessionstatus:
+  path: '/api/client/1/sessionstatus'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_client_api\Controller\ClientSessionController::sessionStatus'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook client api'
+  methods: [POST]
+
+rook_servicechannel_client_api.requestshell:
+  path: '/api/client/1/requestshell'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_client_api\Controller\ClientSessionController::requestShell'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook client api'
+  methods: [POST]

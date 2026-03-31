@@ -1,0 +1,7 @@
+services:
+  rook_servicechannel_client_api.request_context_resolver:
+    class: Drupal\rook_servicechannel_client_api\Request\ClientRequestContextResolver
+
+  rook_servicechannel_client_api.client_session_manager:
+    class: Drupal\rook_servicechannel_client_api\Service\ClientSessionManager
+    arguments: ['@datetime.time', '@rook_servicechannel_core.support_session_manager', '@rook_servicechannel_core.support_session_participant_manager', '@rook_servicechannel_core.terminal_grant_manager', '@rook_servicechannel_core.audit_log_writer']

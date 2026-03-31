@@ -3,6 +3,10 @@ services:
     class: Drupal\rook_servicechannel_core\Service\SupportSessionManager
     arguments: ['@entity_type.manager', '@datetime.time']
 
+  rook_servicechannel_core.support_session_participant_manager:
+    class: Drupal\rook_servicechannel_core\Service\SupportSessionParticipantManager
+    arguments: ['@database', '@datetime.time']
+
   rook_servicechannel_core.terminal_grant_manager:
     class: Drupal\rook_servicechannel_core\Service\TerminalGrantManager
     arguments: ['@entity_type.manager', '@datetime.time']

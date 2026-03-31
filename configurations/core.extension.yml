@@ -31,6 +31,7 @@ module:
   page_cache: 0
   path: 0
   path_alias: 0
+  rook_servicechannel_client_api: 0
   rook_servicechannel_console_api: 0
   rook_servicechannel_core: 0
   search: 0

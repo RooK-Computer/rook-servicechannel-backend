@@ -1,0 +1,14 @@
+uuid: 7819d0f2-1a86-4d87-b67e-bc3630c3e2d9
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.service
+  module:
+    - user
+id: user_remove_role_action.service
+label: 'Remove the Service role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: service

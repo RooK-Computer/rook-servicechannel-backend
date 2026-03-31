@@ -30,7 +30,9 @@ Die vom RooK-Team verwendeten REST-Endpunkte samt Rollenpruefung, Session-Kopplu
 5. `sessionstatus` auf die aus dem Frontend sichtbare Session-Sicht abbilden.
 6. `requestshell` so umsetzen, dass ein opaques Terminal-Token erzeugt wird, das Benutzer und Session bindet.
 7. Regeln fuer parallele Sessions pro Mitarbeiter und mehrere Mitarbeiter pro Session sauber abbilden.
-8. Unklare Request-/Response-Details explizit dokumentieren und im Code kapseln.
+8. Die Request-Modelle fuer `pinlookup`, `sessionstatus` und `requestshell` auf explizite Session-/PIN-Daten festziehen.
+9. Unklare Request-/Response-Details explizit dokumentieren und im Code kapseln.
+10. Bestehende HTTP-Checks und lokale Validierungshinweise auf konfigurierbare Basis-URLs umstellen.
 
 ## Erwartete Artefakte
 
@@ -38,7 +40,7 @@ Die vom RooK-Team verwendeten REST-Endpunkte samt Rollenpruefung, Session-Kopplu
 * Installations- oder Update-Code fuer die Rolle `Service`
 * Zugriffskontrolllogik auf Drupal-Rollenbasis
 * Services fuer Session-Kopplung und Grant-Erzeugung
-* Tests fuer Rollenpruefung, PIN-Kopplung und Token-Ausgabe
+* Tests fuer Rollenpruefung, PIN-Kopplung, Token-Ausgabe und Contract-Validierung
 
 ## Validierung
 
@@ -46,6 +48,7 @@ Die vom RooK-Team verwendeten REST-Endpunkte samt Rollenpruefung, Session-Kopplu
 * Nutzer ohne Rolle `Service` erhalten keinen Zugriff.
 * Ein gueltiger PIN koppelt eine Session erfolgreich.
 * `requestshell` liefert ein Token fuer eine passende Session und einen passenden Benutzer.
+* HTTP-Checks arbeiten ohne fest verdrahteten lokalen Port.
 
 ## Risiken und offene Punkte
 
@@ -53,9 +56,27 @@ Die vom RooK-Team verwendeten REST-Endpunkte samt Rollenpruefung, Session-Kopplu
 * Abgrenzung zwischen impliziter Kopplung und expliziter Persistenz dieser Kopplung
 * Verhalten bei mehrfacher Token-Anforderung pro Benutzer und Session
 
+## Umgesetztes Initialergebnis
+
+Folgende Artefakte wurden fuer die erste Web-API-Umsetzung angelegt:
+
+* `docroot/modules/custom/rook_servicechannel_client_api/`
+* reproduzierbare Rolle `Service` inklusive Permission `access rook client api`
+* Routen fuer `pinlookup`, `sessionstatus` und `requestshell`
+* Service-Schicht fuer PIN-Kopplung, Frontend-Status und Grant-Ausgabe
+* Kernel- und OpenAPI-Contract-Tests fuer die Client-API
+* umgestellte HTTP-Validierungshinweise ohne festen lokalen Port
+
+Wichtige Umsetzungsentscheidung:
+
+* Alle drei Client-Endpunkte arbeiten in der ersten technischen Umsetzung mit expliziten `pin`-Feldern im Request.
+* Die Session-Kopplung wird serverseitig in `rook_support_session_participant` persistiert.
+* `requestshell` bindet den aktuellen Service-User und die explizit adressierte Session an einen neuen Terminal-Grant.
+
 ## Uebergabe an Folgepakete
 
 * dokumentiert, wo und wie die Rolle `Service` angelegt wird
 * dokumentiertes Mapping zwischen Drupal-Usern, Sessions und Grants
 * bekannte offene API-Detailfragen
 * sichtbare Unterschiede zwischen Frontend-Sicht und internem Domain-Modell
+* dokumentiert, wie lokale HTTP-Pruefungen konfigurierbar bleiben

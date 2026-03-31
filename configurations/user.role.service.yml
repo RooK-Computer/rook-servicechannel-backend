@@ -1,0 +1,12 @@
+uuid: 3bef088d-5090-460a-af12-c4bed123fab4
+langcode: en
+status: true
+dependencies:
+  module:
+    - rook_servicechannel_client_api
+id: service
+label: Service
+weight: 4
+is_admin: false
+permissions:
+  - 'access rook client api'

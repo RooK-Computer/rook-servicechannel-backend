@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Install and update hooks for rook_servicechannel_client_api.
+ */
+
+use Drupal\user\Entity\Role;
+use Drupal\user\RoleInterface;
+
+/**
+ * Ensures the Service role exists and has the expected permissions.
+ */
+function _rook_servicechannel_client_api_ensure_service_role(): void {
+  $role = Role::load('service');
+
+  if ($role === NULL) {
+    $role = Role::create([
+      'id' => 'service',
+      'label' => 'Service',
+    ]);
+  }
+
+  if (!$role->hasPermission('access rook client api')) {
+    $role->grantPermission('access rook client api');
+  }
+
+  $role->save();
+}
+
+/**
+ * Implements hook_install().
+ */
+function rook_servicechannel_client_api_install(): void {
+  _rook_servicechannel_client_api_ensure_service_role();
+}
+
+/**
+ * Ensures the Service role exists for upgraded sites.
+ */
+function rook_servicechannel_client_api_update_11001(): void {
+  _rook_servicechannel_client_api_ensure_service_role();
+}

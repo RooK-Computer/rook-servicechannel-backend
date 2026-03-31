@@ -138,25 +138,7 @@ final class ConsoleSessionLifecycleManager {
    * Loads the newest matching session for a PIN.
    */
   private function loadLatestSessionByPin(string $pin): ?SupportSession {
-    $ids = $this->entityTypeManager
-      ->getStorage('support_session')
-      ->getQuery()
-      ->accessCheck(FALSE)
-      ->condition('pin', $pin)
-      ->sort('id', 'DESC')
-      ->range(0, 1)
-      ->execute();
-
-    if ($ids === []) {
-      return NULL;
-    }
-
-    /** @var \Drupal\rook_servicechannel_core\Entity\SupportSession|null $session */
-    $session = $this->entityTypeManager
-      ->getStorage('support_session')
-      ->load((int) reset($ids));
-
-    return $session;
+    return $this->supportSessionManager->loadLatestSessionByPin($pin);
   }
 
   /**

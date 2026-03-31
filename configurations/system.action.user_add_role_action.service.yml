@@ -1,0 +1,14 @@
+uuid: d923871b-c094-4d62-a867-899107926a39
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.service
+  module:
+    - user
+id: user_add_role_action.service
+label: 'Add the Service role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: service
