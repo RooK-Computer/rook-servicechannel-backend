@@ -34,6 +34,9 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 6. Tests, Delivery und Statuspflege
    * siehe `06-testing-delivery-and-status-maintenance.md`
 
+7. Team-Frontend und Browser-Terminal
+   * siehe `07-team-frontend-and-browser-terminal.md`
+
 ## Empfohlene Reihenfolge
 
 1. Bootstrap abschliessen
@@ -42,6 +45,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 4. Web-API umsetzen
 5. Gateway-Validierung und Laufzeitjobs ergaenzen
 6. Test- und Statuspflege vervollstaendigen
+7. Team-Frontend zusammen mit einem Gateway-MVP integrieren
 
 ## Agenten-Uebergaben
 
@@ -54,6 +58,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 * Fehlercode-Katalog fuer alle Backend-APIs
 * technische Umsetzung des VPN-basierten Vertrauensmodells
 * konkrete Session-, Grant- und Audit-Felder jenseits des Minimalmodells
+* konkreter Zuschnitt des Drupal-nahen Team-Frontends und seiner Gateway-Anbindung
 
 ## Erwartete Hauptartefakte
 
@@ -63,4 +68,5 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 * `configurations/`
 * Custom-Module fuer die Backend-Domaene
 * API-Endpunkte fuer Agent, Client und Gateway
+* Drupal-nahes Team-Frontend inklusive Browser-Terminal-Integration
 * Tests und aktualisierte Statusdokumente
