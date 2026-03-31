@@ -1,0 +1,7 @@
+name: RooK Service Channel Console IP Guard
+type: module
+description: Restricts agent-facing console API routes to configured source IP addresses.
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - rook_servicechannel_console_api:rook_servicechannel_console_api

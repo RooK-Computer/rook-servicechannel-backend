@@ -1,0 +1,10 @@
+rook_servicechannel_console_ip_guard.settings:
+  type: config_object
+  label: 'RooK console API IP guard settings'
+  mapping:
+    allowed_ips:
+      type: sequence
+      label: 'Allowed source IPs or CIDR ranges'
+      sequence:
+        type: string
+        label: 'Allowed IP or CIDR range'

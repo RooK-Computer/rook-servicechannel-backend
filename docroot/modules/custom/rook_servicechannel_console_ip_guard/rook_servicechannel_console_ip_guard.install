@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Install and uninstall hooks for rook_servicechannel_console_ip_guard.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function rook_servicechannel_console_ip_guard_install(): void {
+  \Drupal::service('router.builder')->rebuild();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function rook_servicechannel_console_ip_guard_uninstall(): void {
+  \Drupal::service('router.builder')->rebuild();
+}

@@ -1,0 +1,7 @@
+services:
+  rook_servicechannel_console_api.request_context_resolver:
+    class: Drupal\rook_servicechannel_console_api\Request\ConsoleRequestContextResolver
+
+  rook_servicechannel_console_api.console_session_lifecycle_manager:
+    class: Drupal\rook_servicechannel_console_api\Service\ConsoleSessionLifecycleManager
+    arguments: ['@entity_type.manager', '@datetime.time', '@rook_servicechannel_core.support_session_manager', '@rook_servicechannel_core.audit_log_writer']

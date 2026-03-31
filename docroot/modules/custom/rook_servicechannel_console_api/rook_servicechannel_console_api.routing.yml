@@ -1,0 +1,31 @@
+rook_servicechannel_console_api.begin_session:
+  path: '/api/console/1/beginsession'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_console_api\Controller\ConsoleSessionController::beginSession'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+
+rook_servicechannel_console_api.status:
+  path: '/api/console/1/status'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_console_api\Controller\ConsoleSessionController::status'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+
+rook_servicechannel_console_api.ping:
+  path: '/api/console/1/ping'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_console_api\Controller\ConsoleSessionController::ping'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+
+rook_servicechannel_console_api.end_session:
+  path: '/api/console/1/endsession'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_console_api\Controller\ConsoleSessionController::endSession'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]

@@ -1,0 +1,11 @@
+services:
+  rook_servicechannel_console_ip_guard.access_check:
+    class: Drupal\rook_servicechannel_console_ip_guard\Access\ConsoleIpGuardAccessCheck
+    arguments: ['@config.factory']
+    tags:
+      - { name: access_check, applies_to: _rook_console_ip_guard, needs_incoming_request: true }
+
+  rook_servicechannel_console_ip_guard.route_subscriber:
+    class: Drupal\rook_servicechannel_console_ip_guard\Routing\ConsoleIpGuardRouteSubscriber
+    tags:
+      - { name: event_subscriber }

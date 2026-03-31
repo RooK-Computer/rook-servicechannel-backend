@@ -1,0 +1,7 @@
+name: RooK Service Channel Console API
+type: module
+description: Agent-facing console API for support session lifecycle operations.
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - rook_servicechannel_core:rook_servicechannel_core
