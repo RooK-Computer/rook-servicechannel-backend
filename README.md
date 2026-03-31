@@ -99,6 +99,66 @@ Important notes:
   curl -I "http://localhost:${APP_PORT:-8080}"
   ```
 
+### Running tests
+
+Drupal Kernel tests in this repository must run through Drupal's own PHPUnit configuration and need the standard Simpletest environment variables.
+
+Run the complete custom-module suite:
+
+```bash
+docker compose exec app sh -lc '
+  mkdir -p /tmp/browser_output &&
+  cd docroot &&
+  export SIMPLETEST_DB="mysql://rook:rook@db:3306/rook_servicechannel" \
+    SIMPLETEST_BASE_URL="http://localhost" \
+    BROWSERTEST_OUTPUT_DIRECTORY="/tmp/browser_output" &&
+  ../vendor/bin/phpunit -c core/phpunit.xml.dist modules/custom
+'
+```
+
+Run a focused Kernel test file:
+
+```bash
+docker compose exec app sh -lc '
+  mkdir -p /tmp/browser_output &&
+  cd docroot &&
+  export SIMPLETEST_DB="mysql://rook:rook@db:3306/rook_servicechannel" \
+    SIMPLETEST_BASE_URL="http://localhost" \
+    BROWSERTEST_OUTPUT_DIRECTORY="/tmp/browser_output" &&
+  ../vendor/bin/phpunit -c core/phpunit.xml.dist \
+    modules/custom/rook_servicechannel_core/tests/src/Kernel/CoreDomainServicesKernelTest.php
+'
+```
+
+Current automated coverage includes:
+
+* shared core-domain service behavior in `rook_servicechannel_core`
+* console API flows and OpenAPI contract checks
+* optional console IP guard checks
+* client API flows, role access checks and OpenAPI contract checks
+* gateway validation, runtime maintenance and OpenAPI contract checks
+
+### Local API checks
+
+For manual HTTP checks, keep the base URL configurable:
+
+```bash
+APP_BASE_URL="${APP_BASE_URL:-http://localhost:${APP_PORT:-8080}}"
+curl -i "${APP_BASE_URL}/api/console/1/status" \
+  -H 'Content-Type: application/json' \
+  -d '{"pin":"0000"}'
+```
+
+### Reset a local site from the exported configuration
+
+For a local reset against an empty database, use:
+
+```bash
+bin/recreate-site-from-config
+```
+
+If you want a complete local reset, first ensure that the database used by Docker is empty or intentionally recreate the local database volume contents before running the script again.
+
 ### Local default credentials after the example installation
 
 If you use the `drush site:install` command above without changes, you can work locally with the admin credentials defined there. For real team use, those credentials should of course be changed immediately.

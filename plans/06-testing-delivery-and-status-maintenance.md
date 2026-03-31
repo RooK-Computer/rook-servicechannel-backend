@@ -39,6 +39,33 @@ Die Backend-Umsetzung absichern, gegen die Spezifikation pruefen und die zugehoe
 * moeglicher Aufwand fuer realistische Integrationsumgebungen
 * Spezifikationsabweichungen, die erst waehrend der Implementierung sichtbar werden
 
+## Umgesetztes Initialergebnis
+
+Teilplan 06 wurde als Konsolidierungsschritt fuer den bisherigen Backend-Stand initial umgesetzt.
+
+Ergaenzt wurden:
+
+* ein eigener Kernel-Regressionstest fuer gemeinsam genutzte Core-Domain-Services in `rook_servicechannel_core`
+* ein dokumentierter, funktionierender Drupal-PHPUnit-Entrypoint ueber `docroot/core/phpunit.xml.dist` inklusive benoetigter `SIMPLETEST_*`-Umgebungsvariablen
+* README-Workflows fuer:
+  * vollstaendige Custom-Module-Testlaeufe
+  * gezielte Kernel-Testausfuehrung
+  * manuelle API-Pruefung mit konfigurierbarer Basis-URL
+  * lokalen Reset aus dem Config-Export
+* aktualisierte Statusartefakte zum realen Test- und Delivery-Stand
+
+Bekannter Stand der Absicherung:
+
+* Kernel- und OpenAPI-Contract-Tests decken die Console-, Client- und Gateway-Endpunkte ab.
+* Der Domain-Kern prueft zentrale Session-, Teilnehmer- und Grant-Helfer jetzt auch direkt.
+* Der lokale Testweg ist dokumentiert, ohne eine feste Entwicklungs-URL im Repository vorauszusetzen.
+
+Bewusst offen bleiben:
+
+* Fehlercode-Katalog und Revocation-Feinschliff ueber alle APIs
+* echte Ende-zu-Ende-Validierung gegen eine laufende Gateway-Komponente
+* weitergehende Integrationsumgebungen jenseits des lokalen Docker-/Drupal-Stacks
+
 ## Uebergabe
 
 * offene Spezifikationsfragen sauber benennen
