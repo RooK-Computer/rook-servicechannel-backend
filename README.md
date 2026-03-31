@@ -48,24 +48,42 @@ After that, the application is available at `http://localhost:8080` or on the `A
 
 ### Recreate a site from the exported configuration
 
-If you start with an empty database but already have the full config export in `configurations/`, you do not need an additional contrib installation profile such as `config_installer`.
-
-Drupal core and Drush support this directly via `site:install --existing-config`. Drush reads the required install profile from `configurations/core.extension.yml`. In this repository that file currently contains `profile: standard`, and `standard` is part of Drupal core.
-
-Use this command for a fresh database that should be built from the exported configuration:
+If you start with an empty database but already have the full config export in `configurations/`, the obvious one-step command
 
 ```bash
-docker compose exec app vendor/bin/drush site:install \
-  --existing-config \
+docker compose exec app vendor/bin/drush site:install --existing-config
+```
+
+does not work for this repository.
+
+Reason: `configurations/core.extension.yml` currently contains `profile: standard`, and Drupal core blocks configuration installs for profiles that implement `hook_install()`. The core `standard` profile does exactly that.
+
+Use this two-step process instead:
+
+```bash
+docker compose exec app vendor/bin/drush site:install standard \
   --db-url="mysql://rook:rook@db:3306/rook_servicechannel" \
   --site-name="RooK Service Channel Backend"
+
+docker compose exec app sh -lc 'vendor/bin/drush config:set -y system.site uuid "$(sed -n "s/^uuid: //p" configurations/system.site.yml)"'
+
+docker compose exec app vendor/bin/drush config:import -y
 ```
+
+Or use the helper script in this repository:
+
+```bash
+bin/recreate-site-from-config
+```
+
+The helper script also removes the shortcut entities created by `standard_install()`, because they otherwise block the subsequent configuration import.
 
 Important notes:
 
-* The install profile referenced in `configurations/core.extension.yml` must be present in the codebase.
+* A fresh Drupal install gets a new site UUID. The UUID must match `configurations/system.site.yml` before `config:import` will succeed.
 * All modules referenced by the exported config must be installed in `docroot/` before running the command.
 * If the database is not empty, drop it first or start with a new schema.
+* If you want a future one-step install from config, the practical options are a custom profile without `hook_install()` or a recipe-based installation flow.
 
 ### Verification
 

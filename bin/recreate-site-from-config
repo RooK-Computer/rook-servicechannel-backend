@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+APP_SERVICE="app"
+DEFAULT_SITE_NAME="RooK Service Channel Backend"
+SITE_NAME="${DEFAULT_SITE_NAME}"
+
+usage() {
+  cat <<'EOF'
+Usage: bin/recreate-site-from-config [--site-name "My Site"]
+
+Recreates the Drupal site from the exported configuration in configurations/
+using the repository's Docker Compose environment.
+
+Prerequisites:
+  - docker compose is available
+  - composer dependencies are already installed in the app container
+  - the target database is empty
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --site-name)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --site-name" >&2
+        exit 1
+      fi
+      SITE_NAME="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+cd "${REPO_ROOT}"
+
+if [[ ! -f "configurations/system.site.yml" ]]; then
+  echo "configurations/system.site.yml not found." >&2
+  exit 1
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is not available in PATH." >&2
+  exit 1
+fi
+
+CONFIG_UUID="$(sed -n 's/^uuid: //p' configurations/system.site.yml | head -n 1)"
+
+if [[ -z "${CONFIG_UUID}" ]]; then
+  echo "Could not read site UUID from configurations/system.site.yml." >&2
+  exit 1
+fi
+
+echo "Starting Drupal install with profile 'standard'..."
+docker compose exec \
+  -e ROOK_SITE_NAME="${SITE_NAME}" \
+  "${APP_SERVICE}" \
+  sh -lc 'vendor/bin/drush site:install standard -y --db-url="mysql://${DRUPAL_DB_USER}:${DRUPAL_DB_PASSWORD}@${DRUPAL_DB_HOST}:${DRUPAL_DB_PORT}/${DRUPAL_DB_NAME}" --site-name="${ROOK_SITE_NAME}"'
+
+echo "Removing shortcut entities created by the standard profile..."
+docker compose exec \
+  "${APP_SERVICE}" \
+  sh -lc 'vendor/bin/drush php:eval '"'"'
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $shortcut_storage = $entity_type_manager->getStorage("shortcut");
+    $shortcuts = $shortcut_storage->loadMultiple();
+    if ($shortcuts) {
+      $shortcut_storage->delete($shortcuts);
+    }
+
+    $shortcut_set_storage = $entity_type_manager->getStorage("shortcut_set");
+    $shortcut_sets = $shortcut_set_storage->loadMultiple();
+    if ($shortcut_sets) {
+      $shortcut_set_storage->delete($shortcut_sets);
+    }
+  '"'"''
+
+echo "Aligning site UUID with exported configuration..."
+docker compose exec \
+  -e ROOK_CONFIG_UUID="${CONFIG_UUID}" \
+  "${APP_SERVICE}" \
+  sh -lc 'vendor/bin/drush config:set -y system.site uuid "${ROOK_CONFIG_UUID}"'
+
+echo "Importing configuration..."
+docker compose exec "${APP_SERVICE}" vendor/bin/drush config:import -y
+
+echo "Done. Verifying Drupal status..."
+docker compose exec "${APP_SERVICE}" vendor/bin/drush status
