@@ -44,6 +44,7 @@ return array(
     'Drupal\\Core\\Site\\Settings' => $baseDir . '/docroot/core/lib/Drupal/Core/Site/Settings.php',
     'Drupal\\DrupalInstalled' => $vendorDir . '/drupal/DrupalInstalled.php',
     'JsonException' => $vendorDir . '/symfony/polyfill-php73/Resources/stubs/JsonException.php',
+    'Nevay\\SPI\\GeneratedServiceProviderData' => $vendorDir . '/composer/GeneratedServiceProviderData.php',
     'NoDiscard' => $vendorDir . '/symfony/polyfill-php85/Resources/stubs/NoDiscard.php',
     'Normalizer' => $vendorDir . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
     'OS_Guess' => $vendorDir . '/pear/pear-core-minimal/src/OS/Guess.php',

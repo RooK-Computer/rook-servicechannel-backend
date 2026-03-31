@@ -46,6 +46,27 @@ If you use different database values in `.env`, adjust the `--db-url` accordingl
 
 After that, the application is available at `http://localhost:8080` or on the `APP_PORT` defined in `.env`.
 
+### Recreate a site from the exported configuration
+
+If you start with an empty database but already have the full config export in `configurations/`, you do not need an additional contrib installation profile such as `config_installer`.
+
+Drupal core and Drush support this directly via `site:install --existing-config`. Drush reads the required install profile from `configurations/core.extension.yml`. In this repository that file currently contains `profile: standard`, and `standard` is part of Drupal core.
+
+Use this command for a fresh database that should be built from the exported configuration:
+
+```bash
+docker compose exec app vendor/bin/drush site:install \
+  --existing-config \
+  --db-url="mysql://rook:rook@db:3306/rook_servicechannel" \
+  --site-name="RooK Service Channel Backend"
+```
+
+Important notes:
+
+* The install profile referenced in `configurations/core.extension.yml` must be present in the codebase.
+* All modules referenced by the exported config must be installed in `docroot/` before running the command.
+* If the database is not empty, drop it first or start with a new schema.
+
 ### Verification
 
 * Check the current Drupal status:

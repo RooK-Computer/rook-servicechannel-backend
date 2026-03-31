@@ -29,7 +29,9 @@
       "composer/installers": true,
       "dealerdirect/phpcodesniffer-composer-installer": true,
       "drupal/core-composer-scaffold": true,
-      "phpstan/extension-installer": true
+      "php-http/discovery": true,
+      "phpstan/extension-installer": true,
+      "tbachert/spi": true
     },
     "sort-packages": true
   },
