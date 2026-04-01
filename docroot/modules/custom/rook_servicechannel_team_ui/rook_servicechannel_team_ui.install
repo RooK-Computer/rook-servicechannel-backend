@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Install and update hooks for rook_servicechannel_team_ui.
+ */
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Ensures the Service role can access the team UI.
+ */
+function _rook_servicechannel_team_ui_ensure_service_role_access(): void {
+  $role = Role::load('service');
+
+  if ($role === NULL) {
+    $role = Role::create([
+      'id' => 'service',
+      'label' => 'Service',
+    ]);
+  }
+
+  if (!$role->hasPermission('access rook team ui')) {
+    $role->grantPermission('access rook team ui');
+  }
+
+  $role->save();
+}
+
+/**
+ * Implements hook_install().
+ */
+function rook_servicechannel_team_ui_install(): void {
+  _rook_servicechannel_team_ui_ensure_service_role_access();
+}
+
+/**
+ * Ensures the Service role exists for upgraded sites.
+ */
+function rook_servicechannel_team_ui_update_11001(): void {
+  _rook_servicechannel_team_ui_ensure_service_role_access();
+}

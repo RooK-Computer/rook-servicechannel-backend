@@ -1,0 +1,136 @@
+.rook-team-ui {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.rook-team-ui__header {
+  margin-bottom: 1.5rem;
+}
+
+.rook-team-ui__eyebrow {
+  margin: 0 0 0.25rem;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rook-team-ui__title {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.rook-team-ui__subtitle {
+  margin: 0.5rem 0 0;
+  max-width: 70ch;
+  color: #475569;
+}
+
+.rook-team-ui__grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.rook-team-ui__card {
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  padding: 1.25rem;
+}
+
+.rook-team-ui__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rook-team-ui__label {
+  font-weight: 600;
+}
+
+.rook-team-ui__input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.rook-team-ui__actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rook-team-ui__facts {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1.25rem 0 0;
+}
+
+.rook-team-ui__facts div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.rook-team-ui__facts dt {
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.rook-team-ui__facts dd {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rook-team-ui__message {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.5rem;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.rook-team-ui__terminal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rook-team-ui__hint {
+  margin: 0.35rem 0 0;
+  color: #475569;
+}
+
+.rook-team-ui__terminal-shell {
+  min-height: 32rem;
+  background: #0f172a;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+.rook-team-ui__terminal {
+  width: 100%;
+  height: 100%;
+  min-height: 30rem;
+}
+
+.rook-team-ui__terminal .xterm-viewport {
+  overflow-y: auto;
+}
+
+@media (max-width: 960px) {
+  .rook-team-ui__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rook-team-ui__terminal-shell,
+  .rook-team-ui__terminal {
+    min-height: 24rem;
+  }
+}

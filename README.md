@@ -149,6 +149,35 @@ curl -i "${APP_BASE_URL}/api/console/1/status" \
   -d '{"pin":"0000"}'
 ```
 
+### Team UI
+
+The repository now includes a Drupal-native Service UI module at:
+
+* `/servicechannel/team`
+
+The UI is protected for authenticated users with the Drupal role `Service` and permission `access rook team ui`.
+
+It integrates:
+
+* PIN lookup via `POST /api/client/1/pinlookup`
+* session status via `POST /api/client/1/sessionstatus`
+* terminal grant requests via `POST /api/client/1/requestshell`
+* an `xterm.js`-based browser terminal shell for the separate gateway
+
+Gateway runtime settings can be changed in Drupal at:
+
+* `/admin/config/services/rook-servicechannel/team-ui`
+
+Available settings:
+
+* gateway base URL
+* gateway terminal path
+
+Important note:
+
+* The browser now opens the WebSocket normally and sends the terminal grant as the first `authorize` message after the upgrade succeeds.
+* The UI treats the terminal as active only after the gateway confirms the authorization path with `authorized`.
+
 ### Reset a local site from the exported configuration
 
 For a local reset against an empty database, use:

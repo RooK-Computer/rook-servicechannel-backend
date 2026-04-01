@@ -1,0 +1,18 @@
+rook_servicechannel_team_ui.app:
+  path: '/servicechannel/team'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_team_ui\Controller\TeamUiController::build'
+    _title: 'RooK Service Channel'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook team ui'
+  options:
+    no_cache: 'TRUE'
+
+rook_servicechannel_team_ui.settings:
+  path: '/admin/config/services/rook-servicechannel/team-ui'
+  defaults:
+    _form: '\Drupal\rook_servicechannel_team_ui\Form\TeamUiSettingsForm'
+    _title: 'RooK team UI settings'
+  requirements:
+    _permission: 'administer site configuration'

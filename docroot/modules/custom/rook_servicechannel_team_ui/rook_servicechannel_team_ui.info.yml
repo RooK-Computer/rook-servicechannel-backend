@@ -1,0 +1,8 @@
+name: 'RooK Service Channel Team UI'
+type: module
+description: 'Provides the Service team UI for session coupling and browser terminal access.'
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:user
+  - rook_servicechannel_client_api:rook_servicechannel_client_api

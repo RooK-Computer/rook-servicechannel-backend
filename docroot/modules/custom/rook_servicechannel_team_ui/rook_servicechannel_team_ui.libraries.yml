@@ -1,0 +1,19 @@
+app:
+  css:
+    theme:
+      vendor/xterm/css/xterm.css: {}
+      css/team-ui.css: {}
+  js:
+    vendor/xterm/lib/xterm.js:
+      minified: true
+      preprocess: false
+    vendor/xterm-addon-fit/lib/addon-fit.js:
+      minified: true
+      preprocess: false
+    js/team-ui.js:
+      attributes:
+        defer: true
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once

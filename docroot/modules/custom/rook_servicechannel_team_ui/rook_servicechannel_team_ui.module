@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Theme hooks for the RooK team UI module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function rook_servicechannel_team_ui_theme(): array {
+  return [
+    'rook_servicechannel_team_ui_app' => [
+      'variables' => [],
+      'template' => 'rook-servicechannel-team-ui-app',
+    ],
+  ];
+}

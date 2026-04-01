@@ -1,0 +1,10 @@
+rook_servicechannel_team_ui.settings:
+  type: config_object
+  label: 'RooK team UI settings'
+  mapping:
+    gateway_base_url:
+      type: string
+      label: 'Gateway base URL'
+    gateway_terminal_path:
+      type: string
+      label: 'Gateway terminal path'

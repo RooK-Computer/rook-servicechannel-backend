@@ -4,9 +4,11 @@ status: true
 dependencies:
   module:
     - rook_servicechannel_client_api
+    - rook_servicechannel_team_ui
 id: service
 label: Service
 weight: 4
 is_admin: false
 permissions:
   - 'access rook client api'
+  - 'access rook team ui'

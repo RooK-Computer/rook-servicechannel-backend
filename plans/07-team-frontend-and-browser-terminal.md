@@ -91,6 +91,23 @@ Nicht Teil dieses Arbeitspakets:
 * das Browser-Terminal verbindet sich gegen einen kompatiblen Gateway-MVP
 * Fehler bei Backend- oder Gateway-Kommunikation werden fuer den Nutzer klar sichtbar
 
+## Umgesetztes Initialergebnis
+
+Folgende Artefakte wurden fuer die erste UI-Umsetzung angelegt:
+
+* `docroot/modules/custom/rook_servicechannel_team_ui/`
+* geschuetzte Route `/servicechannel/team` fuer authentisierte Nutzer mit Rolle `Service`
+* Drupal-Config fuer Gateway-Basis-URL und Terminal-Pfad
+* UI fuer PIN-Eingabe, Session-Status, `requestshell` und Browser-Terminal
+* eingebettete `xterm.js`-Runtime-Artefakte ohne zusaetzliche Frontend-Build-Toolchain
+* Kernel-Test fuer Rollen-Provisionierung, Seitenzugriff und Laufzeit-Settings
+
+Wichtige Umsetzungsentscheidung:
+
+* Das Team-Frontend wurde als eigenes Drupal-Custom-Modul umgesetzt, nicht als separates Theme oder externes SPA.
+* Die erste UI-Schicht verwendet committed Runtime-Artefakte fuer `xterm.js`, damit der Repo-Stand ohne zusaetzlichen Frontend-Build lauffaehig bleibt.
+* Nach der Aktualisierung der Gateway-Spezifikation oeffnet die UI den WebSocket ohne benutzerdefinierte Auth-Header und uebergibt den Grant anschliessend als erste Protokollnachricht `authorize`; erfolgreiche Autorisierung wird mit `authorized` bestaetigt.
+
 ## Risiken und offene Punkte
 
 * finaler Frontend-Zuschnitt innerhalb von Drupal
