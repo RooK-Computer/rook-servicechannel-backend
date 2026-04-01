@@ -410,7 +410,7 @@
 
     sendFrame(state.socket, {
       type: 'resize',
-      cols: state.terminal.cols,
+      columns: state.terminal.cols,
       rows: state.terminal.rows,
     });
   }
