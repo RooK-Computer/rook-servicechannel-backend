@@ -1,5 +1,6 @@
 /docroot/sites/default/files/*
 !/docroot/sites/default/files/.gitignore
+!/docroot/sites/default/files.htaccess
 /docroot/sites/default/settings.local.php
 /.env
 /.phpunit.result.cache

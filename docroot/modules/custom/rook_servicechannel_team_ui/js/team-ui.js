@@ -21732,6 +21732,7 @@
         gatewayBaseUrl: "",
         gatewayTerminalPath: "/gateway/terminal"
       };
+      var TERMINAL_VIEWPORT_MARGIN = 24;
       function TeamUiApp({ settings }) {
         const [pin, setPin] = (0, import_react.useState)("");
         const [sessionKnown, setSessionKnown] = (0, import_react.useState)(false);
@@ -21766,10 +21767,14 @@
           if (!shell || !terminal || !fitAddon) {
             return;
           }
-          const availableHeight = Math.max(window.innerHeight - shell.getBoundingClientRect().top - 24, 280);
-          const ratioHeight = Math.max(Math.round(shell.clientWidth * 0.75), 280);
+          const shellRect = shell.getBoundingClientRect();
+          const availableHeight = Math.max(Math.floor(window.innerHeight - shellRect.top - TERMINAL_VIEWPORT_MARGIN), 0);
+          const ratioHeight = Math.max(Math.round(shellRect.width * 0.75), 0);
           const nextHeight = Math.min(availableHeight, ratioHeight);
           shell.style.setProperty("--rook-terminal-height", `${nextHeight}px`);
+          if (nextHeight <= 0) {
+            return;
+          }
           fitAddon.fit();
           sendResize(socketRef.current, terminal, authorizedRef.current);
         };

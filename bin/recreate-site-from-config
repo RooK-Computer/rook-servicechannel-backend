@@ -5,21 +5,29 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-APP_SERVICE="app"
 DEFAULT_SITE_NAME="RooK Service Channel Backend"
 SITE_NAME="${DEFAULT_SITE_NAME}"
+DB_URL=""
+DRUSH_BIN="${REPO_ROOT}/vendor/bin/drush"
 
 usage() {
   cat <<'EOF'
-Usage: bin/recreate-site-from-config [--site-name "My Site"]
+Usage: bin/recreate-site-from-config [--site-name "My Site"] [--db-url "mysql://user:pass@host:3306/db"]
 
 Recreates the Drupal site from the exported configuration in configurations/
-using the repository's Docker Compose environment.
+using the current execution context.
 
 Prerequisites:
-  - docker compose is available
-  - composer dependencies are already installed in the app container
+  - PHP and Drush are available in the current context
+  - composer dependencies are already installed
   - the target database is empty
+  - database access is available either via --db-url or the current DB env vars
+
+Examples:
+  - Host/local context:
+      bin/recreate-site-from-config
+  - Container context:
+      docker compose exec app bin/recreate-site-from-config
 EOF
 }
 
@@ -31,6 +39,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       SITE_NAME="$2"
+      shift 2
+      ;;
+    --db-url)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --db-url" >&2
+        exit 1
+      fi
+      DB_URL="$2"
       shift 2
       ;;
     -h|--help)
@@ -47,13 +63,20 @@ done
 
 cd "${REPO_ROOT}"
 
+if [[ -f ".env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source ".env"
+  set +a
+fi
+
 if [[ ! -f "configurations/system.site.yml" ]]; then
   echo "configurations/system.site.yml not found." >&2
   exit 1
 fi
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker is not available in PATH." >&2
+if [[ ! -x "${DRUSH_BIN}" ]]; then
+  echo "Drush was not found at ${DRUSH_BIN}. Run composer install in the current context first." >&2
   exit 1
 fi
 
@@ -64,38 +87,49 @@ if [[ -z "${CONFIG_UUID}" ]]; then
   exit 1
 fi
 
+if [[ -z "${DB_URL}" ]]; then
+  DB_DRIVER="${DRUPAL_DB_DRIVER:-mysql}"
+  DB_HOST_VALUE="${DRUPAL_DB_HOST:-${DB_HOST:-127.0.0.1}}"
+  DB_PORT_VALUE="${DRUPAL_DB_PORT:-${DB_PORT:-3306}}"
+  DB_NAME_VALUE="${DRUPAL_DB_NAME:-${DB_NAME:-}}"
+  DB_USER_VALUE="${DRUPAL_DB_USER:-${DB_USER:-}}"
+  DB_PASSWORD_VALUE="${DRUPAL_DB_PASSWORD:-${DB_PASSWORD:-}}"
+
+  if [[ -z "${DB_NAME_VALUE}" || -z "${DB_USER_VALUE}" || -z "${DB_PASSWORD_VALUE}" ]]; then
+    echo "Database access is missing. Provide --db-url or set DRUPAL_DB_* / DB_* values in the current context." >&2
+    exit 1
+  fi
+
+  DB_URL="${DB_DRIVER}://${DB_USER_VALUE}:${DB_PASSWORD_VALUE}@${DB_HOST_VALUE}:${DB_PORT_VALUE}/${DB_NAME_VALUE}"
+fi
+
+SHORTCUT_CLEANUP_CODE="$(cat <<'PHP'
+$entity_type_manager = \Drupal::entityTypeManager();
+$shortcut_storage = $entity_type_manager->getStorage('shortcut');
+$shortcuts = $shortcut_storage->loadMultiple();
+if ($shortcuts) {
+  $shortcut_storage->delete($shortcuts);
+}
+
+$shortcut_set_storage = $entity_type_manager->getStorage('shortcut_set');
+$shortcut_sets = $shortcut_set_storage->loadMultiple();
+if ($shortcut_sets) {
+  $shortcut_set_storage->delete($shortcut_sets);
+}
+PHP
+)"
+
 echo "Starting Drupal install with profile 'standard'..."
-docker compose exec \
-  -e ROOK_SITE_NAME="${SITE_NAME}" \
-  "${APP_SERVICE}" \
-  sh -lc 'vendor/bin/drush site:install standard -y --db-url="mysql://${DRUPAL_DB_USER}:${DRUPAL_DB_PASSWORD}@${DRUPAL_DB_HOST}:${DRUPAL_DB_PORT}/${DRUPAL_DB_NAME}" --site-name="${ROOK_SITE_NAME}"'
+"${DRUSH_BIN}" site:install standard -y --db-url="${DB_URL}" --site-name="${SITE_NAME}"
 
 echo "Removing shortcut entities created by the standard profile..."
-docker compose exec \
-  "${APP_SERVICE}" \
-  sh -lc 'vendor/bin/drush php:eval '"'"'
-    $entity_type_manager = \Drupal::entityTypeManager();
-    $shortcut_storage = $entity_type_manager->getStorage("shortcut");
-    $shortcuts = $shortcut_storage->loadMultiple();
-    if ($shortcuts) {
-      $shortcut_storage->delete($shortcuts);
-    }
-
-    $shortcut_set_storage = $entity_type_manager->getStorage("shortcut_set");
-    $shortcut_sets = $shortcut_set_storage->loadMultiple();
-    if ($shortcut_sets) {
-      $shortcut_set_storage->delete($shortcut_sets);
-    }
-  '"'"''
+"${DRUSH_BIN}" php:eval "${SHORTCUT_CLEANUP_CODE}"
 
 echo "Aligning site UUID with exported configuration..."
-docker compose exec \
-  -e ROOK_CONFIG_UUID="${CONFIG_UUID}" \
-  "${APP_SERVICE}" \
-  sh -lc 'vendor/bin/drush config:set -y system.site uuid "${ROOK_CONFIG_UUID}"'
+"${DRUSH_BIN}" config:set -y system.site uuid "${CONFIG_UUID}"
 
 echo "Importing configuration..."
-docker compose exec "${APP_SERVICE}" vendor/bin/drush config:import -y
+"${DRUSH_BIN}" config:import -y
 
 echo "Done. Verifying Drupal status..."
-docker compose exec "${APP_SERVICE}" vendor/bin/drush status
+"${DRUSH_BIN}" status

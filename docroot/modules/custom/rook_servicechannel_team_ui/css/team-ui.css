@@ -158,13 +158,13 @@
 
 .rook-team-ui__terminal-shell {
   --rook-terminal-height: 32rem;
+  box-sizing: border-box;
   background: #0f172a;
   border-radius: 0.75rem;
   padding: 0.75rem;
   width: 100%;
   max-width: 100%;
   height: var(--rook-terminal-height);
-  min-height: 18rem;
   overflow: hidden;
 }
 

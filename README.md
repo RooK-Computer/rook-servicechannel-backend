@@ -76,6 +76,22 @@ Or use the helper script in this repository:
 bin/recreate-site-from-config
 ```
 
+The helper script now runs in the **current execution context** and no longer wraps its own commands in `docker compose exec`.
+
+That means both of these are valid, depending on where you want to run Drush:
+
+```bash
+bin/recreate-site-from-config
+docker compose exec app bin/recreate-site-from-config
+```
+
+If the current context does not already provide the database connection through `DRUPAL_DB_*` or `DB_*`, pass it explicitly:
+
+```bash
+bin/recreate-site-from-config \
+  --db-url="mysql://rook:rook@127.0.0.1:3306/rook_servicechannel"
+```
+
 The helper script also removes the shortcut entities created by `standard_install()`, because they otherwise block the subsequent configuration import.
 
 Important notes:
