@@ -40,6 +40,9 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 8. Folgearbeiten aus Integrationsbefunden
    * siehe `08-backend-follow-up-from-integration-findings.md`
 
+9. Abgeschlossenes Team-UI-Finetuning aus dem Integrationsabgleich
+   * siehe `09-team-ui-terminal-layout-follow-up.md`
+
 ## Empfohlene Reihenfolge
 
 1. Bootstrap abschliessen
@@ -50,6 +53,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 6. Test- und Statuspflege vervollstaendigen
 7. Team-Frontend zusammen mit einem Gateway-MVP integrieren
 8. Folgearbeiten aus Integrationsbefunden entlang von Lifecycle, Navigation und Team-UI umsetzen
+9. Spaetere UI- oder Delivery-Folgearbeiten auf Basis des abgeschlossenen Terminal-Finetunings aus Teilplan 09 weiterfuehren
 
 ## Agenten-Uebergaben
 
