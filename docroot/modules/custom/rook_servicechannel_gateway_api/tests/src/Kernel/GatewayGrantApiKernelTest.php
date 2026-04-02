@@ -82,6 +82,12 @@ final class GatewayGrantApiKernelTest extends KernelTestBase {
 
     self::assertSame(500, $response->getStatusCode());
     self::assertSame('grant_already_redeemed', $this->decodeJsonResponse($response)['code']);
+
+    $reloaded_session = $this->container->get('entity_type.manager')
+      ->getStorage('support_session')
+      ->load((int) $session->id());
+
+    self::assertSame('open', (string) $reloaded_session->get('status')->value);
   }
 
   public function testRuntimeMaintenanceExpiresGrantAndDeletesOldClosedSession(): void {

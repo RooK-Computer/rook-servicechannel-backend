@@ -11,7 +11,6 @@ use Drupal\rook_servicechannel_core\Service\AuditLogWriter;
 use Drupal\rook_servicechannel_core\Service\SupportSessionManager;
 use Drupal\rook_servicechannel_core\Service\SupportSessionParticipantManager;
 use Drupal\rook_servicechannel_core\Service\TerminalGrantManager;
-use Drupal\rook_servicechannel_core\SupportSessionStatus;
 use Drupal\user\UserInterface;
 
 final class ClientSessionManager {
@@ -30,7 +29,7 @@ final class ClientSessionManager {
   public function pinLookup(string $pin, UserInterface $account, ?string $ipAddress = NULL): SupportSession {
     $session = $this->requireSessionByPin($pin, $ipAddress);
 
-    if ($this->isClosed($session)) {
+    if ($this->supportSessionManager->isClosed($session)) {
       throw new ClientApiException('session_not_available', 'The support session is no longer available.');
     }
 
@@ -69,19 +68,19 @@ final class ClientSessionManager {
     $session = $this->requireSessionByPin($pin, $ipAddress);
     $this->requireCoupledSession($session, $account);
 
-    if ($this->isClosed($session)) {
+    if ($this->supportSessionManager->isClosed($session)) {
       throw new ClientApiException('session_not_available', 'The support session is no longer available.');
     }
 
     $this->terminalGrantManager->revokeOutstandingGrants($session, $account);
 
-    $expires_at = (int) ($session->get('expires_at')->value ?: $this->time->getRequestTime() + 30);
+    $expires_at = (int) ($session->get('expires_at')->value ?: $this->time->getRequestTime() + $this->supportSessionManager->getHeartbeatTimeoutSeconds());
     $grant_data = $this->terminalGrantManager->issueGrant(
       $session,
       $account,
       (string) $session->get('console_ip_address')->value,
       $expires_at,
-      $this->time->getRequestTime() + 30,
+      $this->time->getRequestTime() + $this->supportSessionManager->getHeartbeatTimeoutSeconds(),
     );
 
     $this->auditLogWriter->write(
@@ -106,7 +105,7 @@ final class ClientSessionManager {
       throw new ClientApiException('session_not_found', 'No support session was found for the supplied PIN.');
     }
 
-    $session = $this->closeExpiredSessionIfNeeded($session, $ipAddress);
+    $session = $this->expireSessionIfNeeded($session, $ipAddress);
 
     return $session;
   }
@@ -126,38 +125,22 @@ final class ClientSessionManager {
   /**
    * Closes timed-out sessions once their heartbeat window elapsed.
    */
-  private function closeExpiredSessionIfNeeded(SupportSession $session, ?string $ipAddress): SupportSession {
-    if ($this->isClosed($session)) {
-      return $session;
-    }
+  private function expireSessionIfNeeded(SupportSession $session, ?string $ipAddress): SupportSession {
+    $was_closed = $this->supportSessionManager->isClosed($session);
+    $session = $this->supportSessionManager->expireSessionIfTimedOut($session);
 
-    $expires_at = $session->get('expires_at')->value;
-    if ($expires_at === NULL || $expires_at === '') {
-      return $session;
+    if (!$was_closed && $this->supportSessionManager->isClosed($session)) {
+      $this->auditLogWriter->write(
+        'session_closed',
+        (int) $session->id(),
+        NULL,
+        NULL,
+        $ipAddress ?? (string) $session->get('console_ip_address')->value,
+        ['reason' => 'heartbeat_timeout'],
+      );
     }
-
-    if ((int) $expires_at >= $this->time->getRequestTime()) {
-      return $session;
-    }
-
-    $session = $this->supportSessionManager->closeSession($session, 'heartbeat_timeout');
-    $this->auditLogWriter->write(
-      'session_closed',
-      (int) $session->id(),
-      NULL,
-      NULL,
-      $ipAddress ?? (string) $session->get('console_ip_address')->value,
-      ['reason' => 'heartbeat_timeout'],
-    );
 
     return $session;
-  }
-
-  /**
-   * Returns whether the session is already closed.
-   */
-  private function isClosed(SupportSession $session): bool {
-    return (string) $session->get('status')->value === SupportSessionStatus::CLOSED;
   }
 
 }

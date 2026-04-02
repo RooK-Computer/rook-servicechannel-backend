@@ -37,6 +37,9 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 7. Team-Frontend und Browser-Terminal
    * siehe `07-team-frontend-and-browser-terminal.md`
 
+8. Folgearbeiten aus Integrationsbefunden
+   * siehe `08-backend-follow-up-from-integration-findings.md`
+
 ## Empfohlene Reihenfolge
 
 1. Bootstrap abschliessen
@@ -46,6 +49,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 5. Gateway-Validierung und Laufzeitjobs ergaenzen
 6. Test- und Statuspflege vervollstaendigen
 7. Team-Frontend zusammen mit einem Gateway-MVP integrieren
+8. Folgearbeiten aus Integrationsbefunden entlang von Lifecycle, Navigation und Team-UI umsetzen
 
 ## Agenten-Uebergaben
 

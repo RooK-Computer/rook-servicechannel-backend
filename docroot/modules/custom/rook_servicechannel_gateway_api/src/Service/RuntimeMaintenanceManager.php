@@ -62,7 +62,7 @@ final class RuntimeMaintenanceManager {
       ->loadMultiple($ids);
 
     foreach ($sessions as $session) {
-      $this->supportSessionManager->closeSession($session, 'heartbeat_timeout');
+      $this->supportSessionManager->expireSessionIfTimedOut($session);
     }
   }
 

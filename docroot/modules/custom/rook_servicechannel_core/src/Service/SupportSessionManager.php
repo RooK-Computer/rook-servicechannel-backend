@@ -11,6 +11,8 @@ use Drupal\rook_servicechannel_core\SupportSessionStatus;
 
 final class SupportSessionManager {
 
+  private const HEARTBEAT_TIMEOUT_SECONDS = 30;
+
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly TimeInterface $time,
@@ -32,7 +34,7 @@ final class SupportSessionManager {
         'vpn_peer_ip_address' => $vpnPeerIpAddress,
         'started_at' => $now,
         'last_heartbeat_at' => $now,
-        'expires_at' => $now + 30,
+        'expires_at' => $this->buildHeartbeatExpiryTimestamp($now),
         'active_terminal_count' => 0,
       ]);
 
@@ -73,7 +75,7 @@ final class SupportSessionManager {
 
     $session->set('console_ip_address', $observedIpAddress);
     $session->set('last_heartbeat_at', $now);
-    $session->set('expires_at', $now + 30);
+    $session->set('expires_at', $this->buildHeartbeatExpiryTimestamp($now));
     $session->save();
 
     return $session;
@@ -93,6 +95,21 @@ final class SupportSessionManager {
   }
 
   /**
+   * Marks a live support session as open again after active use ended.
+   */
+  public function markSessionOpen(SupportSession $session): SupportSession {
+    if ($this->isClosed($session)) {
+      throw new \LogicException('A closed support session cannot be moved back to open.');
+    }
+
+    $session->set('status', SupportSessionStatus::OPEN);
+    $session->set('active_terminal_count', 0);
+    $session->save();
+
+    return $session;
+  }
+
+  /**
    * Closes a support session with an explicit reason.
    */
   public function closeSession(SupportSession $session, string $reason): SupportSession {
@@ -105,6 +122,51 @@ final class SupportSessionManager {
     $session->save();
 
     return $session;
+  }
+
+  /**
+   * Closes an open or active session once its heartbeat window elapsed.
+   */
+  public function expireSessionIfTimedOut(SupportSession $session): SupportSession {
+    if ($this->isClosed($session) || !$this->isHeartbeatTimedOut($session)) {
+      return $session;
+    }
+
+    return $this->closeSession($session, 'heartbeat_timeout');
+  }
+
+  /**
+   * Returns whether the heartbeat grace window has elapsed.
+   */
+  public function isHeartbeatTimedOut(SupportSession $session): bool {
+    $expires_at = $session->get('expires_at')->value;
+
+    if ($expires_at === NULL || $expires_at === '') {
+      return FALSE;
+    }
+
+    return (int) $expires_at < $this->time->getRequestTime();
+  }
+
+  /**
+   * Returns whether the session is already closed.
+   */
+  public function isClosed(SupportSession $session): bool {
+    return (string) $session->get('status')->value === SupportSessionStatus::CLOSED;
+  }
+
+  /**
+   * Returns the configured heartbeat timeout window in seconds.
+   */
+  public function getHeartbeatTimeoutSeconds(): int {
+    return self::HEARTBEAT_TIMEOUT_SECONDS;
+  }
+
+  /**
+   * Builds a session expiry timestamp from a heartbeat reference time.
+   */
+  private function buildHeartbeatExpiryTimestamp(int $referenceTime): int {
+    return $referenceTime + self::HEARTBEAT_TIMEOUT_SECONDS;
   }
 
 }

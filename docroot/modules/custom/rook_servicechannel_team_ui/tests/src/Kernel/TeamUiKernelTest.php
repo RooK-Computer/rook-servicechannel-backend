@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Covers team UI provisioning and page access.
@@ -40,6 +41,7 @@ final class TeamUiKernelTest extends KernelTestBase {
 
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
+    $this->installConfig(['system', 'rook_servicechannel_team_ui']);
 
     $this->container->get('module_handler')->loadInclude('rook_servicechannel_client_api', 'install');
     _rook_servicechannel_client_api_ensure_service_role();
@@ -80,6 +82,26 @@ final class TeamUiKernelTest extends KernelTestBase {
       '/gateway/terminal',
       $attachments['drupalSettings']['rookServicechannelTeamUi']['gatewayTerminalPath'] ?? NULL,
     );
+  }
+
+  public function testMenuLinksExposeTeamUiAndSettingsPages(): void {
+    $module_path = $this->container->get('extension.list.module')->getPath('rook_servicechannel_team_ui');
+    $definitions = Yaml::parseFile($module_path . '/rook_servicechannel_team_ui.links.menu.yml');
+
+    self::assertIsArray($definitions);
+
+    $team_ui_link = $definitions['rook_servicechannel_team_ui.app'] ?? NULL;
+    $settings_link = $definitions['rook_servicechannel_team_ui.settings'] ?? NULL;
+
+    self::assertIsArray($team_ui_link);
+    self::assertIsArray($settings_link);
+    self::assertSame('main', $team_ui_link['menu_name'] ?? NULL);
+    self::assertSame('rook_servicechannel_team_ui.app', $team_ui_link['route_name'] ?? NULL);
+    self::assertSame('system.admin_config_system', $settings_link['parent'] ?? NULL);
+    self::assertSame('rook_servicechannel_team_ui.settings', $settings_link['route_name'] ?? NULL);
+
+    self::assertNotNull($this->container->get('router.route_provider')->getRouteByName('rook_servicechannel_team_ui.app'));
+    self::assertNotNull($this->container->get('router.route_provider')->getRouteByName('rook_servicechannel_team_ui.settings'));
   }
 
   public function testRegularUserCannotOpenTeamUiPage(): void {

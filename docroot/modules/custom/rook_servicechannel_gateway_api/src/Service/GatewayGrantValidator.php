@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Drupal\rook_servicechannel_gateway_api\Service;
 
 use Drupal\Component\Datetime\TimeInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\rook_servicechannel_core\Entity\SupportSession;
 use Drupal\rook_servicechannel_core\Entity\TerminalGrant;
 use Drupal\rook_servicechannel_core\Service\SupportSessionManager;
 use Drupal\rook_servicechannel_core\Service\TerminalGrantManager;
-use Drupal\rook_servicechannel_core\SupportSessionStatus;
 use Drupal\rook_servicechannel_core\TerminalGrantStatus;
 use Drupal\rook_servicechannel_gateway_api\Exception\GatewayApiException;
 
@@ -18,7 +16,6 @@ final class GatewayGrantValidator {
 
   public function __construct(
     private readonly TimeInterface $time,
-    private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly SupportSessionManager $supportSessionManager,
     private readonly TerminalGrantManager $terminalGrantManager,
   ) {}
@@ -37,9 +34,9 @@ final class GatewayGrantValidator {
     }
 
     $session = $this->loadGrantSession($grant);
-    $session = $this->closeExpiredSessionIfNeeded($session);
+    $session = $this->supportSessionManager->expireSessionIfTimedOut($session);
 
-    if ((string) $session->get('status')->value === SupportSessionStatus::CLOSED) {
+    if ($this->supportSessionManager->isClosed($session)) {
       $this->terminalGrantManager->expireGrant($grant);
       throw new GatewayApiException('session_not_available', 'The support session bound to this grant is no longer available.');
     }
@@ -97,25 +94,4 @@ final class GatewayGrantValidator {
 
     return $session;
   }
-
-  /**
-   * Closes timed-out sessions once their heartbeat window elapsed.
-   */
-  private function closeExpiredSessionIfNeeded(SupportSession $session): SupportSession {
-    if ((string) $session->get('status')->value === SupportSessionStatus::CLOSED) {
-      return $session;
-    }
-
-    $expires_at = $session->get('expires_at')->value;
-    if ($expires_at === NULL || $expires_at === '') {
-      return $session;
-    }
-
-    if ((int) $expires_at >= $this->time->getRequestTime()) {
-      return $session;
-    }
-
-    return $this->supportSessionManager->closeSession($session, 'heartbeat_timeout');
-  }
-
 }

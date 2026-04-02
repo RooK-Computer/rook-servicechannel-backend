@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\rook_servicechannel_console_api\Service;
 
-use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\rook_servicechannel_core\Entity\SupportSession;
 use Drupal\rook_servicechannel_core\Service\AuditLogWriter;
@@ -19,7 +18,6 @@ final class ConsoleSessionLifecycleManager {
 
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
-    private readonly TimeInterface $time,
     private readonly SupportSessionManager $supportSessionManager,
     private readonly AuditLogWriter $auditLogWriter,
   ) {}
@@ -67,7 +65,7 @@ final class ConsoleSessionLifecycleManager {
       return NULL;
     }
 
-    return $this->closeExpiredSessionIfNeeded($session);
+    return $this->expireSessionIfNeeded($session);
   }
 
   /**
@@ -80,8 +78,8 @@ final class ConsoleSessionLifecycleManager {
       return NULL;
     }
 
-    $session = $this->closeExpiredSessionIfNeeded($session);
-    if ($this->isClosed($session)) {
+    $session = $this->expireSessionIfNeeded($session);
+    if ($this->supportSessionManager->isClosed($session)) {
       return NULL;
     }
 
@@ -116,8 +114,8 @@ final class ConsoleSessionLifecycleManager {
       return NULL;
     }
 
-    $session = $this->closeExpiredSessionIfNeeded($session);
-    if ($this->isClosed($session)) {
+    $session = $this->expireSessionIfNeeded($session);
+    if ($this->supportSessionManager->isClosed($session)) {
       return $session;
     }
 
@@ -207,38 +205,22 @@ final class ConsoleSessionLifecycleManager {
   /**
    * Closes expired sessions once their heartbeat window elapsed.
    */
-  private function closeExpiredSessionIfNeeded(SupportSession $session): SupportSession {
-    if ($this->isClosed($session)) {
-      return $session;
-    }
+  private function expireSessionIfNeeded(SupportSession $session): SupportSession {
+    $was_closed = $this->supportSessionManager->isClosed($session);
+    $session = $this->supportSessionManager->expireSessionIfTimedOut($session);
 
-    $expires_at = $session->get('expires_at')->value;
-    if ($expires_at === NULL || $expires_at === '') {
-      return $session;
+    if (!$was_closed && $this->supportSessionManager->isClosed($session)) {
+      $this->auditLogWriter->write(
+        'session_closed',
+        (int) $session->id(),
+        NULL,
+        NULL,
+        (string) $session->get('console_ip_address')->value,
+        ['reason' => 'heartbeat_timeout'],
+      );
     }
-
-    if ((int) $expires_at >= $this->time->getRequestTime()) {
-      return $session;
-    }
-
-    $session = $this->supportSessionManager->closeSession($session, 'heartbeat_timeout');
-    $this->auditLogWriter->write(
-      'session_closed',
-      (int) $session->id(),
-      NULL,
-      NULL,
-      (string) $session->get('console_ip_address')->value,
-      ['reason' => 'heartbeat_timeout'],
-    );
 
     return $session;
-  }
-
-  /**
-   * Returns whether the session is already closed.
-   */
-  private function isClosed(SupportSession $session): bool {
-    return (string) $session->get('status')->value === SupportSessionStatus::CLOSED;
   }
 
 }

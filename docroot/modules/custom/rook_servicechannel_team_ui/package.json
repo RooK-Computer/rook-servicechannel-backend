@@ -1,0 +1,21 @@
+{
+  "name": "@rook/servicechannel-team-ui",
+  "version": "0.1.0",
+  "description": "Build tooling for the Drupal RooK Service Channel Team UI.",
+  "scripts": {
+    "build": "esbuild src/team-ui.tsx --bundle --format=iife --target=es2020 --outfile=js/team-ui.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "commonjs",
+  "private": true,
+  "dependencies": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.27.5",
+    "typescript": "^6.0.2"
+  }
+}

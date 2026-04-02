@@ -1,11 +1,7 @@
 .rook-team-ui {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 2rem 1rem 3rem;
-}
-
-.rook-team-ui__header {
-  margin-bottom: 1.5rem;
 }
 
 .rook-team-ui__eyebrow {
@@ -28,9 +24,12 @@
   color: #475569;
 }
 
-.rook-team-ui__grid {
+.rook-team-ui__header {
+  margin-bottom: 1.5rem;
+}
+
+.rook-team-ui__stack {
   display: grid;
-  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   gap: 1.5rem;
 }
 
@@ -40,6 +39,23 @@
   border-radius: 0.75rem;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   padding: 1.25rem;
+}
+
+.rook-team-ui__section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rook-team-ui__section-head--terminal {
+  margin-bottom: 1.25rem;
+}
+
+.rook-team-ui__section-title {
+  margin: 0;
+  font-size: 1.25rem;
 }
 
 .rook-team-ui__form {
@@ -61,14 +77,20 @@
 }
 
 .rook-team-ui__actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.rook-team-ui__actions .button {
+  margin: 0;
 }
 
 .rook-team-ui__facts {
   display: grid;
-  gap: 0.9rem;
-  margin: 1.25rem 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.9rem 1.25rem;
+  margin: 0;
 }
 
 .rook-team-ui__facts div {
@@ -88,18 +110,11 @@
 }
 
 .rook-team-ui__message {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   padding: 0.85rem 1rem;
   border-radius: 0.5rem;
   background: #fee2e2;
   color: #991b1b;
-}
-
-.rook-team-ui__terminal-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .rook-team-ui__hint {
@@ -107,17 +122,55 @@
   color: #475569;
 }
 
+.rook-team-ui__info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rook-team-ui__debug {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.rook-team-ui__status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .rook-team-ui__terminal-shell {
-  min-height: 32rem;
+  --rook-terminal-height: 32rem;
   background: #0f172a;
   border-radius: 0.75rem;
   padding: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  height: var(--rook-terminal-height);
+  min-height: 18rem;
+  overflow: hidden;
 }
 
 .rook-team-ui__terminal {
   width: 100%;
   height: 100%;
-  min-height: 30rem;
 }
 
 .rook-team-ui__terminal .xterm-viewport {
@@ -125,12 +178,11 @@
 }
 
 @media (max-width: 960px) {
-  .rook-team-ui__grid {
-    grid-template-columns: 1fr;
+  .rook-team-ui__actions {
+    display: grid;
   }
 
-  .rook-team-ui__terminal-shell,
-  .rook-team-ui__terminal {
-    min-height: 24rem;
+  .rook-team-ui__facts {
+    grid-template-columns: 1fr;
   }
 }

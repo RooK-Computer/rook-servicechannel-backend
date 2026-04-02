@@ -1,0 +1,13 @@
+rook_servicechannel_team_ui.app:
+  title: 'RooK Service Channel'
+  description: 'Open the Service workspace for session coupling and browser terminal access.'
+  route_name: rook_servicechannel_team_ui.app
+  menu_name: main
+  weight: -100
+
+rook_servicechannel_team_ui.settings:
+  title: 'RooK team UI settings'
+  description: 'Configure the browser gateway target for the Service workspace.'
+  route_name: rook_servicechannel_team_ui.settings
+  parent: system.admin_config_system
+  weight: 50

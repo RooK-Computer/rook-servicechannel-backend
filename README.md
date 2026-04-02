@@ -173,10 +173,28 @@ Available settings:
 * gateway base URL
 * gateway terminal path
 
+The Team UI source now lives as a React + TypeScript app inside the Drupal module:
+
+* `docroot/modules/custom/rook_servicechannel_team_ui/src/team-ui.tsx`
+
+The committed runtime bundle remains:
+
+* `docroot/modules/custom/rook_servicechannel_team_ui/js/team-ui.js`
+
+To rebuild the committed frontend artifact after Team UI source changes:
+
+```bash
+cd docroot/modules/custom/rook_servicechannel_team_ui
+npm install
+npm run typecheck
+npm run build
+```
+
 Important note:
 
 * The browser now opens the WebSocket normally and sends the terminal grant as the first `authorize` message after the upgrade succeeds.
 * The UI treats the terminal as active only after the gateway confirms the authorization path with `authorized`.
+* The Service workspace is linked into the Drupal main navigation, and the settings form is linked under `Configuration/System`.
 
 ### Reset a local site from the exported configuration
 

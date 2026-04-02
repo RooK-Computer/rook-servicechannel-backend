@@ -134,6 +134,32 @@ final class CoreDomainServicesKernelTest extends KernelTestBase {
     self::assertSame('revoked', (string) $reloaded_second_grant->get('status')->value);
   }
 
+  public function testTimedOutSessionIsClosedThroughSharedManagerLogic(): void {
+    $manager = $this->container->get('rook_servicechannel_core.support_session_manager');
+    $session = $manager->createSession('4711', '10.0.0.5');
+
+    $session->set('expires_at', \Drupal::time()->getRequestTime() - 1);
+    $session->save();
+
+    $session = $manager->expireSessionIfTimedOut($session);
+
+    self::assertSame('closed', (string) $session->get('status')->value);
+    self::assertSame('heartbeat_timeout', (string) $session->get('close_reason')->value);
+  }
+
+  public function testActiveSessionCanReturnToOpenWithoutClosing(): void {
+    $manager = $this->container->get('rook_servicechannel_core.support_session_manager');
+    $session = $manager->createSession('4711', '10.0.0.5');
+
+    $session = $manager->activateSession($session);
+    $session = $manager->markSessionOpen($session);
+
+    self::assertSame('open', (string) $session->get('status')->value);
+    self::assertSame(0, (int) $session->get('active_terminal_count')->value);
+    self::assertSame('', (string) $session->get('close_reason')->value);
+    self::assertSame('', (string) $session->get('closed_at')->value);
+  }
+
   /**
    * Creates and saves a simple active user.
    */
