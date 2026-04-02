@@ -21732,6 +21732,7 @@
         gatewayBaseUrl: "",
         gatewayTerminalPath: "/gateway/terminal"
       };
+      var TERMINAL_CARD_MARGIN = 32;
       var TERMINAL_VIEWPORT_MARGIN = 24;
       var TERMINAL_LAYOUT_SETTLE_DELAY = 180;
       function TeamUiApp({ settings }) {
@@ -21742,6 +21743,7 @@
         const [terminalState, setTerminalState] = (0, import_react.useState)("Disconnected");
         const [message, setMessage] = (0, import_react.useState)("");
         const [debugOpen, setDebugOpen] = (0, import_react.useState)(false);
+        const terminalCardRef = (0, import_react.useRef)(null);
         const terminalElementRef = (0, import_react.useRef)(null);
         const terminalShellRef = (0, import_react.useRef)(null);
         const terminalRef = (0, import_react.useRef)(null);
@@ -21763,12 +21765,22 @@
           }
         }, [settings]);
         const syncTerminalLayout = () => {
+          const terminalCard = terminalCardRef.current;
           const shell = terminalShellRef.current;
           const terminal = terminalRef.current;
           const fitAddon = fitAddonRef.current;
-          if (!shell || !terminal || !fitAddon) {
+          if (!terminalCard || !shell || !terminal || !fitAddon) {
             return;
           }
+          const viewportLeft = window.visualViewport?.offsetLeft ?? 0;
+          const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+          const cardRect = terminalCard.getBoundingClientRect();
+          const parentWidth = terminalCard.parentElement?.getBoundingClientRect().width ?? cardRect.width;
+          const availableWidth = Math.max(
+            Math.floor(viewportLeft + viewportWidth - cardRect.left - TERMINAL_CARD_MARGIN),
+            parentWidth
+          );
+          terminalCard.style.setProperty("--rook-terminal-card-width", `${availableWidth}px`);
           const shellRect = shell.getBoundingClientRect();
           const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
           const availableHeight = Math.max(Math.floor(viewportHeight - Math.max(shellRect.top, 0) - TERMINAL_VIEWPORT_MARGIN), 0);
@@ -22074,7 +22086,7 @@
                 ] })
               ] }) })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card rook-team-ui__card--terminal", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card rook-team-ui__card--terminal", ref: terminalCardRef, children: [
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head rook-team-ui__section-head--terminal", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { className: "rook-team-ui__section-title", children: "Browser terminal" }),

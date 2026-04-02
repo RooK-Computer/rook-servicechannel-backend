@@ -43,9 +43,8 @@
 }
 
 .rook-team-ui__card--terminal {
-  width: calc(100vw - (var(--rook-page-gutter) * 2));
-  max-width: calc(100vw - (var(--rook-page-gutter) * 2));
-  margin-left: calc(50% - 50vw + var(--rook-page-gutter));
+  width: var(--rook-terminal-card-width, 100%);
+  max-width: 100%;
   box-sizing: border-box;
 }
 

@@ -48,6 +48,7 @@ const DEFAULT_SETTINGS: RuntimeSettings = {
   gatewayBaseUrl: '',
   gatewayTerminalPath: '/gateway/terminal',
 };
+const TERMINAL_CARD_MARGIN = 32;
 const TERMINAL_VIEWPORT_MARGIN = 24;
 const TERMINAL_LAYOUT_SETTLE_DELAY = 180;
 
@@ -60,6 +61,7 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
   const [message, setMessage] = useState('');
   const [debugOpen, setDebugOpen] = useState(false);
 
+  const terminalCardRef = useRef<HTMLElement | null>(null);
   const terminalElementRef = useRef<HTMLDivElement | null>(null);
   const terminalShellRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<TerminalInstance | null>(null);
@@ -84,13 +86,25 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
   }, [settings]);
 
   const syncTerminalLayout = () => {
+    const terminalCard = terminalCardRef.current;
     const shell = terminalShellRef.current;
     const terminal = terminalRef.current;
     const fitAddon = fitAddonRef.current;
 
-    if (!shell || !terminal || !fitAddon) {
+    if (!terminalCard || !shell || !terminal || !fitAddon) {
       return;
     }
+
+    const viewportLeft = window.visualViewport?.offsetLeft ?? 0;
+    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+    const cardRect = terminalCard.getBoundingClientRect();
+    const parentWidth = terminalCard.parentElement?.getBoundingClientRect().width ?? cardRect.width;
+    const availableWidth = Math.max(
+      Math.floor(viewportLeft + viewportWidth - cardRect.left - TERMINAL_CARD_MARGIN),
+      parentWidth,
+    );
+
+    terminalCard.style.setProperty('--rook-terminal-card-width', `${availableWidth}px`);
 
     const shellRect = shell.getBoundingClientRect();
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -442,7 +456,7 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
           )}
         </section>
 
-        <section className="rook-team-ui__card rook-team-ui__card--terminal">
+        <section className="rook-team-ui__card rook-team-ui__card--terminal" ref={terminalCardRef}>
           <div className="rook-team-ui__section-head rook-team-ui__section-head--terminal">
             <div>
               <h2 className="rook-team-ui__section-title">Browser terminal</h2>
