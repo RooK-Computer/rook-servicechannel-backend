@@ -21783,7 +21783,12 @@
           terminalCard.style.setProperty("--rook-terminal-card-width", `${availableWidth}px`);
           const shellRect = shell.getBoundingClientRect();
           const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-          const availableHeight = Math.max(Math.floor(viewportHeight - Math.max(shellRect.top, 0) - TERMINAL_VIEWPORT_MARGIN), 0);
+          const topChromeOffset = getTopChromeOffset();
+          const shellOffsetWithinCard = Math.max(shellRect.top - cardRect.top, 0);
+          const availableHeight = Math.max(
+            Math.floor(viewportHeight - topChromeOffset - shellOffsetWithinCard - TERMINAL_VIEWPORT_MARGIN),
+            0
+          );
           const ratioHeight = Math.max(Math.round(shellRect.width * 0.75), 0);
           const nextHeight = Math.min(availableHeight, ratioHeight);
           shell.style.setProperty("--rook-terminal-height", `${nextHeight}px`);
@@ -21847,17 +21852,17 @@
           const resizeObserver = new ResizeObserver(() => {
             scheduleTerminalLayoutSync();
           });
+          resizeObserver.observe(terminalCardRef.current ?? terminalShell);
           resizeObserver.observe(terminalShell);
+          getTopChromeElements().forEach((element) => {
+            resizeObserver.observe(element);
+          });
           window.addEventListener("resize", onViewportChange);
-          window.addEventListener("scroll", onViewportChange, { passive: true });
           window.visualViewport?.addEventListener("resize", onViewportChange);
-          window.visualViewport?.addEventListener("scroll", onViewportChange);
           return () => {
             resizeObserver.disconnect();
             window.removeEventListener("resize", onViewportChange);
-            window.removeEventListener("scroll", onViewportChange);
             window.visualViewport?.removeEventListener("resize", onViewportChange);
-            window.visualViewport?.removeEventListener("scroll", onViewportChange);
             if (layoutFrameRef.current !== null) {
               window.cancelAnimationFrame(layoutFrameRef.current);
             }
@@ -22210,6 +22215,26 @@
           return "/gateway/terminal";
         }
         return path.startsWith("/") ? path : `/${path}`;
+      }
+      function getTopChromeOffset() {
+        let offset = 0;
+        getTopChromeElements().forEach((element) => {
+          const style = window.getComputedStyle(element);
+          if (style.display === "none" || style.visibility === "hidden") {
+            return;
+          }
+          const rect = element.getBoundingClientRect();
+          if (rect.height <= 0 || rect.bottom <= 0 || rect.top >= 120) {
+            return;
+          }
+          offset = Math.max(offset, rect.bottom);
+        });
+        return offset;
+      }
+      function getTopChromeElements() {
+        return Array.from(
+          document.querySelectorAll("#toolbar-bar, #toolbar-administration, .toolbar-bar, .toolbar-tray-horizontal")
+        );
       }
       function pickString(payload, keys) {
         for (const key of keys) {
