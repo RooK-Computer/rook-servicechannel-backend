@@ -1,7 +1,8 @@
 .rook-team-ui {
+  --rook-page-gutter: 1rem;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
+  padding: 2rem var(--rook-page-gutter) 3rem;
 }
 
 .rook-team-ui__eyebrow {
@@ -39,6 +40,13 @@
   border-radius: 0.75rem;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   padding: 1.25rem;
+}
+
+.rook-team-ui__card--terminal {
+  width: calc(100vw - (var(--rook-page-gutter) * 2));
+  max-width: calc(100vw - (var(--rook-page-gutter) * 2));
+  margin-left: calc(50% - 50vw + var(--rook-page-gutter));
+  box-sizing: border-box;
 }
 
 .rook-team-ui__section-head {

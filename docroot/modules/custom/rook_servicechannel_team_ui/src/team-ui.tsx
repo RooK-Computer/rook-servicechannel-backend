@@ -49,6 +49,7 @@ const DEFAULT_SETTINGS: RuntimeSettings = {
   gatewayTerminalPath: '/gateway/terminal',
 };
 const TERMINAL_VIEWPORT_MARGIN = 24;
+const TERMINAL_LAYOUT_SETTLE_DELAY = 180;
 
 function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Element {
   const [pin, setPin] = useState('');
@@ -68,7 +69,8 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
   const pendingTokenRef = useRef('');
   const disconnectReasonRef = useRef('Disconnected');
   const decoderRef = useRef(new TextDecoder());
-  const resizeTimeoutRef = useRef<number | null>(null);
+  const layoutFrameRef = useRef<number | null>(null);
+  const layoutSettleTimeoutRef = useRef<number | null>(null);
 
   const gatewayTarget = useMemo(() => {
     try {
@@ -91,7 +93,8 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
     }
 
     const shellRect = shell.getBoundingClientRect();
-    const availableHeight = Math.max(Math.floor(window.innerHeight - shellRect.top - TERMINAL_VIEWPORT_MARGIN), 0);
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const availableHeight = Math.max(Math.floor(viewportHeight - Math.max(shellRect.top, 0) - TERMINAL_VIEWPORT_MARGIN), 0);
     const ratioHeight = Math.max(Math.round(shellRect.width * 0.75), 0);
     const nextHeight = Math.min(availableHeight, ratioHeight);
 
@@ -105,8 +108,22 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
     sendResize(socketRef.current, terminal, authorizedRef.current);
   };
 
+  const scheduleTerminalLayoutSync = () => {
+    if (layoutFrameRef.current !== null) {
+      return;
+    }
+
+    layoutFrameRef.current = window.requestAnimationFrame(() => {
+      layoutFrameRef.current = null;
+      syncTerminalLayout();
+    });
+  };
+
   useEffect(() => {
-    if (!terminalElementRef.current || terminalRef.current) {
+    const terminalElement = terminalElementRef.current;
+    const terminalShell = terminalShellRef.current;
+
+    if (!terminalElement || !terminalShell || terminalRef.current) {
       return;
     }
 
@@ -126,7 +143,7 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
     const fitAddon = new FitAddon.FitAddon();
 
     terminal.loadAddon(fitAddon);
-    terminal.open(terminalElementRef.current);
+    terminal.open(terminalElement);
     terminal.writeln('RooK browser terminal ready.');
     terminal.writeln('Open the terminal after linking a support session.');
     terminal.writeln('');
@@ -146,30 +163,42 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
-    window.requestAnimationFrame(syncTerminalLayout);
+    scheduleTerminalLayoutSync();
+    layoutSettleTimeoutRef.current = window.setTimeout(scheduleTerminalLayoutSync, TERMINAL_LAYOUT_SETTLE_DELAY);
 
-    const onResize = () => {
-      if (resizeTimeoutRef.current !== null) {
-        window.clearTimeout(resizeTimeoutRef.current);
-      }
-
-      resizeTimeoutRef.current = window.setTimeout(() => {
-        syncTerminalLayout();
-      }, 120);
+    const onViewportChange = () => {
+      scheduleTerminalLayoutSync();
     };
 
-    window.addEventListener('resize', onResize);
+    const resizeObserver = new ResizeObserver(() => {
+      scheduleTerminalLayoutSync();
+    });
+    resizeObserver.observe(terminalShell);
+
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('scroll', onViewportChange, { passive: true });
+    window.visualViewport?.addEventListener('resize', onViewportChange);
+    window.visualViewport?.addEventListener('scroll', onViewportChange);
 
     return () => {
-      window.removeEventListener('resize', onResize);
-      if (resizeTimeoutRef.current !== null) {
-        window.clearTimeout(resizeTimeoutRef.current);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', onViewportChange);
+      window.removeEventListener('scroll', onViewportChange);
+      window.visualViewport?.removeEventListener('resize', onViewportChange);
+      window.visualViewport?.removeEventListener('scroll', onViewportChange);
+
+      if (layoutFrameRef.current !== null) {
+        window.cancelAnimationFrame(layoutFrameRef.current);
+      }
+
+      if (layoutSettleTimeoutRef.current !== null) {
+        window.clearTimeout(layoutSettleTimeoutRef.current);
       }
     };
   }, []);
 
   useEffect(() => {
-    window.requestAnimationFrame(syncTerminalLayout);
+    scheduleTerminalLayoutSync();
   }, [debugOpen]);
 
   const clearMessage = () => {
