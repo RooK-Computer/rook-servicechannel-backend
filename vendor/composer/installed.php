@@ -3,7 +3,7 @@
         'name' => 'rook/servicechannel-backend',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'a52050848b27c30a267fe4b32317ab1cfa224828',
+        'reference' => '5174aa733998306bd21a20e5af5fb68974ee0b71',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -1163,7 +1163,7 @@
         'rook/servicechannel-backend' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'a52050848b27c30a267fe4b32317ab1cfa224828',
+            'reference' => '5174aa733998306bd21a20e5af5fb68974ee0b71',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
