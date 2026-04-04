@@ -1,10 +1,3 @@
-rook_servicechannel_console_ip_guard.main:
-  title: 'Console API IP guard'
-  description: 'Configure the allowlist for agent-facing console API requests.'
-  route_name: rook_servicechannel_console_ip_guard.settings
-  menu_name: main
-  weight: -90
-
 rook_servicechannel_console_ip_guard.settings:
   title: 'RooK console API IP guard'
   description: 'Configure the allowlist for agent-facing console API requests.'

@@ -67,19 +67,16 @@ final class ConsoleIpGuardKernelTest extends KernelTestBase {
     self::assertSame(200, $response->getStatusCode());
   }
 
-  public function testMenuLinksExposeSettingsPageInAdminAndMainMenus(): void {
+  public function testMenuLinksExposeSettingsPageInAdminMenu(): void {
     $module_path = $this->container->get('extension.list.module')->getPath('rook_servicechannel_console_ip_guard');
     $definitions = Yaml::parseFile($module_path . '/rook_servicechannel_console_ip_guard.links.menu.yml');
 
     self::assertIsArray($definitions);
 
-    $main_link = $definitions['rook_servicechannel_console_ip_guard.main'] ?? NULL;
     $settings_link = $definitions['rook_servicechannel_console_ip_guard.settings'] ?? NULL;
 
-    self::assertIsArray($main_link);
     self::assertIsArray($settings_link);
-    self::assertSame('main', $main_link['menu_name'] ?? NULL);
-    self::assertSame('rook_servicechannel_console_ip_guard.settings', $main_link['route_name'] ?? NULL);
+    self::assertArrayNotHasKey('rook_servicechannel_console_ip_guard.main', $definitions);
     self::assertSame('system.admin_config_system', $settings_link['parent'] ?? NULL);
     self::assertSame('rook_servicechannel_console_ip_guard.settings', $settings_link['route_name'] ?? NULL);
 
