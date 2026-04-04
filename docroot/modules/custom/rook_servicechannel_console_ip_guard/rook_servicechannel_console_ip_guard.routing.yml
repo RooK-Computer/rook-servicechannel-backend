@@ -1,0 +1,7 @@
+rook_servicechannel_console_ip_guard.settings:
+  path: '/admin/config/services/rook-servicechannel/console-ip-guard'
+  defaults:
+    _form: '\Drupal\rook_servicechannel_console_ip_guard\Form\ConsoleIpGuardSettingsForm'
+    _title: 'RooK console API IP guard settings'
+  requirements:
+    _permission: 'administer site configuration'

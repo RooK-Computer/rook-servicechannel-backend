@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Verifies optional IP-based hardening for console API routes.
@@ -41,6 +42,7 @@ final class ConsoleIpGuardKernelTest extends KernelTestBase {
       'rook_support_audit_log',
       'rook_support_session_participant',
     ]);
+    $this->installConfig(['rook_servicechannel_console_ip_guard']);
   }
 
   public function testDeniedIpReceivesForbiddenResponse(): void {
@@ -63,6 +65,25 @@ final class ConsoleIpGuardKernelTest extends KernelTestBase {
 
     $response = $this->post('/api/console/1/beginsession', [], '127.0.0.1');
     self::assertSame(200, $response->getStatusCode());
+  }
+
+  public function testMenuLinksExposeSettingsPageInAdminAndMainMenus(): void {
+    $module_path = $this->container->get('extension.list.module')->getPath('rook_servicechannel_console_ip_guard');
+    $definitions = Yaml::parseFile($module_path . '/rook_servicechannel_console_ip_guard.links.menu.yml');
+
+    self::assertIsArray($definitions);
+
+    $main_link = $definitions['rook_servicechannel_console_ip_guard.main'] ?? NULL;
+    $settings_link = $definitions['rook_servicechannel_console_ip_guard.settings'] ?? NULL;
+
+    self::assertIsArray($main_link);
+    self::assertIsArray($settings_link);
+    self::assertSame('main', $main_link['menu_name'] ?? NULL);
+    self::assertSame('rook_servicechannel_console_ip_guard.settings', $main_link['route_name'] ?? NULL);
+    self::assertSame('system.admin_config_system', $settings_link['parent'] ?? NULL);
+    self::assertSame('rook_servicechannel_console_ip_guard.settings', $settings_link['route_name'] ?? NULL);
+
+    self::assertNotNull($this->container->get('router.route_provider')->getRouteByName('rook_servicechannel_console_ip_guard.settings'));
   }
 
   /**
