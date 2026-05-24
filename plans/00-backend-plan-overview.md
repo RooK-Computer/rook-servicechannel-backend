@@ -43,6 +43,10 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 9. Abgeschlossenes Team-UI-Finetuning aus dem Integrationsabgleich
    * siehe `09-team-ui-terminal-layout-follow-up.md`
 
+10. Dateiverwaltung und Konsolen-Downloads
+   * siehe `10-file-management-and-console-downloads.md`
+   * fachliche Grundlage: `../feature-specs/01-file-management-and-console-downloads.md`
+
 ## Empfohlene Reihenfolge
 
 1. Bootstrap abschliessen
@@ -54,6 +58,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 7. Team-Frontend zusammen mit einem Gateway-MVP integrieren
 8. Folgearbeiten aus Integrationsbefunden entlang von Lifecycle, Navigation und Team-UI umsetzen
 9. Spaetere UI- oder Delivery-Folgearbeiten auf Basis des abgeschlossenen Terminal-Finetunings aus Teilplan 09 weiterfuehren
+10. Danach die spezifizierte Dateiverwaltung samt Konsolen-Download-Flow in eigene Umsetzungsplaene zerlegen
 
 ## Agenten-Uebergaben
 
@@ -67,6 +72,7 @@ Dieses Dokument zerlegt die Backend-Umsetzung in fortsetzbare Teilplaene. Es die
 * technische Umsetzung des VPN-basierten Vertrauensmodells
 * konkrete Session-, Grant- und Audit-Felder jenseits des Minimalmodells
 * konkreter Zuschnitt des Drupal-nahen Team-Frontends und seiner Gateway-Anbindung
+* konkrete API-, Bundle- und UI-Ausarbeitung fuer die neue Dateiverwaltung samt Konsolen-Download-Flow
 
 ## Erwartete Hauptartefakte
 
