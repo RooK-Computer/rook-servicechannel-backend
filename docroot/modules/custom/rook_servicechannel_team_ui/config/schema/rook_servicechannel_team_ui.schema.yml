@@ -5,6 +5,9 @@ rook_servicechannel_team_ui.settings:
     gateway_base_url:
       type: string
       label: 'Gateway base URL'
+    download_base_url:
+      type: string
+      label: 'Download base URL'
     gateway_terminal_path:
       type: string
       label: 'Gateway terminal path'

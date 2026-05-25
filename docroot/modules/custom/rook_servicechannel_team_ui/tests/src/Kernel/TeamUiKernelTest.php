@@ -64,6 +64,7 @@ final class TeamUiKernelTest extends KernelTestBase {
   public function testServiceUserCanOpenTeamUiPage(): void {
     $this->config('rook_servicechannel_team_ui.settings')
       ->set('gateway_base_url', 'https://gateway.example.test')
+      ->set('download_base_url', 'https://downloads.example.test')
       ->set('gateway_terminal_path', '/gateway/terminal')
       ->save();
 
@@ -81,6 +82,10 @@ final class TeamUiKernelTest extends KernelTestBase {
     self::assertSame(
       'https://gateway.example.test',
       $attachments['drupalSettings']['rookServicechannelTeamUi']['gatewayBaseUrl'] ?? NULL,
+    );
+    self::assertSame(
+      'https://downloads.example.test',
+      $attachments['drupalSettings']['rookServicechannelTeamUi']['downloadBaseUrl'] ?? NULL,
     );
     self::assertSame(
       '/gateway/terminal',

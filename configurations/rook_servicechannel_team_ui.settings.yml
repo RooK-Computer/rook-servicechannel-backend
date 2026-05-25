@@ -1,4 +1,5 @@
 _core:
-  default_config_hash: Oks4d2nKehd1QE5_D9KFqjIRek8zkYAQ5ZO1SwyFxcY
+  default_config_hash: 1y5NL4V5QK_9E4eTKe6-9iRyr7AYLQ3XX1AzZxCjzrE
 gateway_base_url: ''
+download_base_url: ''
 gateway_terminal_path: /gateway/terminal

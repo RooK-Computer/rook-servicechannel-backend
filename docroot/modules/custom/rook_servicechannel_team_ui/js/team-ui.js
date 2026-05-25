@@ -21733,6 +21733,7 @@
         fileUploadUrl: "/api/client/1/files/session-upload",
         fileDeleteUrl: "/api/client/1/files/delete",
         gatewayBaseUrl: "",
+        downloadBaseUrl: "",
         gatewayTerminalPath: "/gateway/terminal"
       };
       var TERMINAL_CARD_MARGIN = 32;
@@ -22432,14 +22433,10 @@
         return `curl --fail --location --remote-name --remote-header-name --no-clobber ${shellQuote(downloadUrl)}`;
       }
       function buildDownloadBaseUrl(settings) {
-        const origin = settings.gatewayBaseUrl || window.location.origin;
+        const origin = settings.downloadBaseUrl || window.location.origin;
         const url = new URL(origin, window.location.origin);
-        if (url.protocol === "ws:") {
-          url.protocol = "http:";
-        } else if (url.protocol === "wss:") {
-          url.protocol = "https:";
-        } else if (url.protocol !== "http:" && url.protocol !== "https:") {
-          throw new Error("The configured gateway URL must start with http://, https://, ws:// or wss://.");
+        if (url.protocol !== "http:" && url.protocol !== "https:") {
+          throw new Error("The configured download URL must start with http:// or https://.");
         }
         url.pathname = "/";
         url.search = "";

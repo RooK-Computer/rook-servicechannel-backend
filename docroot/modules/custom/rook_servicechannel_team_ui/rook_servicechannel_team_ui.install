@@ -42,3 +42,13 @@ function rook_servicechannel_team_ui_install(): void {
 function rook_servicechannel_team_ui_update_11001(): void {
   _rook_servicechannel_team_ui_ensure_service_role_access();
 }
+
+/**
+ * Adds a dedicated download base URL setting for pasted curl commands.
+ */
+function rook_servicechannel_team_ui_update_11002(): void {
+  $config = \Drupal::configFactory()->getEditable('rook_servicechannel_team_ui.settings');
+  if ($config->get('download_base_url') === NULL) {
+    $config->set('download_base_url', '')->save();
+  }
+}

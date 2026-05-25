@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\rook_servicechannel_file_management\Controller;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Link;
@@ -29,6 +30,7 @@ final class FileManagementPageController extends ControllerBase {
   public function overview(Request $request): array {
     $search = trim((string) $request->query->get('q', ''));
     $account = $this->currentUser();
+    $cache_tags = $this->entityTypeManager()->getDefinition('node')->getListCacheTags();
 
     $build = [
       'actions' => [
@@ -59,6 +61,10 @@ final class FileManagementPageController extends ControllerBase {
         $this->managedFileManager->loadSharedPersistentFiles($account, $search),
         $account,
       ),
+      '#cache' => [
+        'contexts' => ['user', 'url.query_args:q'],
+        'tags' => $cache_tags,
+      ],
     ];
 
     return $build;
@@ -69,9 +75,11 @@ final class FileManagementPageController extends ControllerBase {
    */
   private function buildTable(string $title, array $nodes, $account): array {
     $rows = [];
+    $cache_tags = [];
 
     foreach ($nodes as $node) {
       $record = $this->managedFileManager->buildFileRecord($node, $account);
+      $cache_tags = Cache::mergeTags($cache_tags, $node->getCacheTags());
       $actions = [
         Link::fromTextAndUrl('Download', Url::fromRoute('rook_servicechannel_file_management.download', ['node' => $record['id']]))->toString(),
       ];
@@ -102,6 +110,9 @@ final class FileManagementPageController extends ControllerBase {
       '#type' => 'details',
       '#title' => $title,
       '#open' => TRUE,
+      '#cache' => [
+        'tags' => $cache_tags,
+      ],
       'table' => [
         '#type' => 'table',
         '#empty' => 'No files found.',

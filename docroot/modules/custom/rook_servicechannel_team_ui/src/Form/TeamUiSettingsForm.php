@@ -37,6 +37,14 @@ final class TeamUiSettingsForm extends ConfigFormBase {
       '#required' => FALSE,
     ];
 
+    $form['download_base_url'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Download base URL'),
+      '#default_value' => $config->get('download_base_url'),
+      '#description' => $this->t('Optional backend origin such as https://backend.example.test for the pasted curl download URLs. Leave empty to reuse the current site origin.'),
+      '#required' => FALSE,
+    ];
+
     $form['gateway_terminal_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Gateway terminal path'),
@@ -63,6 +71,15 @@ final class TeamUiSettingsForm extends ConfigFormBase {
       }
     }
 
+    $download_base_url = trim((string) $form_state->getValue('download_base_url'));
+    if ($download_base_url !== '') {
+      $parts = parse_url($download_base_url);
+      $scheme = is_array($parts) ? ($parts['scheme'] ?? '') : '';
+      if (!in_array($scheme, ['http', 'https'], TRUE)) {
+        $form_state->setErrorByName('download_base_url', $this->t('The download base URL must start with http:// or https://.'));
+      }
+    }
+
     $path = trim((string) $form_state->getValue('gateway_terminal_path'));
     if ($path === '' || $path[0] !== '/') {
       $form_state->setErrorByName('gateway_terminal_path', $this->t('The gateway terminal path must start with a slash.'));
@@ -75,6 +92,7 @@ final class TeamUiSettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $this->configFactory->getEditable('rook_servicechannel_team_ui.settings')
       ->set('gateway_base_url', trim((string) $form_state->getValue('gateway_base_url')))
+      ->set('download_base_url', trim((string) $form_state->getValue('download_base_url')))
       ->set('gateway_terminal_path', trim((string) $form_state->getValue('gateway_terminal_path')))
       ->save();
 

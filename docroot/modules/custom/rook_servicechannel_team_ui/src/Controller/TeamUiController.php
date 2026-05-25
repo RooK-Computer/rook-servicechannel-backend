@@ -45,6 +45,7 @@ final class TeamUiController implements ContainerInjectionInterface {
             'fileUploadUrl' => Url::fromRoute('rook_servicechannel_file_management.team_ui.upload')->toString(),
             'fileDeleteUrl' => Url::fromRoute('rook_servicechannel_file_management.team_ui.delete')->toString(),
             'gatewayBaseUrl' => trim((string) $config->get('gateway_base_url')),
+            'downloadBaseUrl' => trim((string) $config->get('download_base_url')),
             'gatewayTerminalPath' => trim((string) ($config->get('gateway_terminal_path') ?: '/gateway/terminal')),
           ],
         ],

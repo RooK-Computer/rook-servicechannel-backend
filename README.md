@@ -188,6 +188,7 @@ Gateway runtime settings can be changed in Drupal at:
 Available settings:
 
 * gateway base URL
+* download base URL for pasted file-download `curl` commands
 * gateway terminal path
 
 The Team UI source now lives as a React + TypeScript app inside the Drupal module:
@@ -212,7 +213,7 @@ Important note:
 * The browser now opens the WebSocket normally and sends the terminal grant as the first `authorize` message after the upgrade succeeds.
 * The UI treats the terminal as active only after the gateway confirms the authorization path with `authorized`.
 * The Service workspace is linked into the Drupal main navigation, and the settings form is linked under `Configuration/System`.
-* The same gateway base URL setting is also reused to build absolute backend download URLs for the pasted `curl` commands.
+* Pasted file-download `curl` commands use their own optional download base URL setting and otherwise fall back to the current site origin.
 
 ### File management
 

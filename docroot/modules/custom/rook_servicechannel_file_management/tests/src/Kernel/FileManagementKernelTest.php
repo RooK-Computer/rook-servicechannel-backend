@@ -206,6 +206,21 @@ final class FileManagementKernelTest extends KernelTestBase {
     self::assertSame('overview-visible.txt', $build['owned']['table']['#rows'][0]['filename']);
   }
 
+  public function testOverviewPageDeclaresListCacheMetadata(): void {
+    $owner = $this->createServiceUser();
+    $this->container->get('current_user')->setAccount($owner);
+
+    $node = $this->createManagedFileNode($owner, 'cache-visible.txt', FileLifetime::PERSISTENT, FALSE);
+    $build = FileManagementPageController::create($this->container)->overview(Request::create('/servicechannel/files?q=cache'));
+
+    $expected_list_tags = $this->container->get('entity_type.manager')->getDefinition('node')->getListCacheTags();
+
+    self::assertContains('user', $build['#cache']['contexts']);
+    self::assertContains('url.query_args:q', $build['#cache']['contexts']);
+    self::assertSame($expected_list_tags, $build['#cache']['tags']);
+    self::assertContains($node->getCacheTags()[0], $build['owned']['#cache']['tags']);
+  }
+
   private function createManagedFileBundle(): void {
     NodeType::create([
       'type' => 'rook_managed_file',
