@@ -22177,6 +22177,20 @@
                 ] })
               ] }) })
             ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card rook-team-ui__card--terminal", ref: terminalCardRef, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head rook-team-ui__section-head--terminal", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { className: "rook-team-ui__section-title", children: "Browser terminal" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { className: "rook-team-ui__hint", children: [
+                    "The UI reuses the client API and then sends the terminal grant as the first",
+                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: " authorize " }),
+                    "message after the WebSocket upgrade succeeds."
+                  ] })
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__status-chip", children: terminalState })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__terminal-shell", ref: terminalShellRef, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__terminal", ref: terminalElementRef }) })
+            ] }),
             /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card", children: [
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
@@ -22257,20 +22271,6 @@
                   onDelete: deleteFile
                 }
               )
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card rook-team-ui__card--terminal", ref: terminalCardRef, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head rook-team-ui__section-head--terminal", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { className: "rook-team-ui__section-title", children: "Browser terminal" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { className: "rook-team-ui__hint", children: [
-                    "The UI reuses the client API and then sends the terminal grant as the first",
-                    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: " authorize " }),
-                    "message after the WebSocket upgrade succeeds."
-                  ] })
-                ] }),
-                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__status-chip", children: terminalState })
-              ] }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__terminal-shell", ref: terminalShellRef, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__terminal", ref: terminalElementRef }) })
             ] })
           ] })
         ] });

@@ -586,6 +586,24 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
           )}
         </section>
 
+        <section className="rook-team-ui__card rook-team-ui__card--terminal" ref={terminalCardRef}>
+          <div className="rook-team-ui__section-head rook-team-ui__section-head--terminal">
+            <div>
+              <h2 className="rook-team-ui__section-title">Browser terminal</h2>
+              <p className="rook-team-ui__hint">
+                The UI reuses the client API and then sends the terminal grant as the first
+                <code> authorize </code>
+                message after the WebSocket upgrade succeeds.
+              </p>
+            </div>
+            <div className="rook-team-ui__status-chip">{terminalState}</div>
+          </div>
+
+          <div className="rook-team-ui__terminal-shell" ref={terminalShellRef}>
+            <div className="rook-team-ui__terminal" ref={terminalElementRef} />
+          </div>
+        </section>
+
         <section className="rook-team-ui__card">
           <div className="rook-team-ui__section-head">
             <div>
@@ -654,24 +672,6 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
             onInsert={pasteCurlCommand}
             onDelete={deleteFile}
           />
-        </section>
-
-        <section className="rook-team-ui__card rook-team-ui__card--terminal" ref={terminalCardRef}>
-          <div className="rook-team-ui__section-head rook-team-ui__section-head--terminal">
-            <div>
-              <h2 className="rook-team-ui__section-title">Browser terminal</h2>
-              <p className="rook-team-ui__hint">
-                The UI reuses the client API and then sends the terminal grant as the first
-                <code> authorize </code>
-                message after the WebSocket upgrade succeeds.
-              </p>
-            </div>
-            <div className="rook-team-ui__status-chip">{terminalState}</div>
-          </div>
-
-          <div className="rook-team-ui__terminal-shell" ref={terminalShellRef}>
-            <div className="rook-team-ui__terminal" ref={terminalElementRef} />
-          </div>
         </section>
       </div>
     </section>
