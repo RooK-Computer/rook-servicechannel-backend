@@ -179,6 +179,7 @@ It integrates:
 * session status via `POST /api/client/1/sessionstatus`
 * terminal grant requests via `POST /api/client/1/requestshell`
 * an `xterm.js`-based browser terminal shell for the separate gateway
+* a files sidebar with search, session uploads, session-file deletion, and non-destructive `curl` paste into the browser terminal
 
 Gateway runtime settings can be changed in Drupal at:
 
@@ -211,6 +212,28 @@ Important note:
 * The browser now opens the WebSocket normally and sends the terminal grant as the first `authorize` message after the upgrade succeeds.
 * The UI treats the terminal as active only after the gateway confirms the authorization path with `authorized`.
 * The Service workspace is linked into the Drupal main navigation, and the settings form is linked under `Configuration/System`.
+* The same gateway base URL setting is also reused to build absolute backend download URLs for the pasted `curl` commands.
+
+### File management
+
+The repository now also includes a dedicated file management module and page at:
+
+* `/servicechannel/files`
+
+The feature covers:
+
+* persistent private files owned by one Service user
+* globally shared persistent files with read-only visibility for other Service users
+* temporary session files bound to one `support_session`
+* browser downloads for logged-in Service users
+* predictable console download URLs guarded by the console IP guard module when enabled
+
+Implementation highlights:
+
+* custom module: `docroot/modules/custom/rook_servicechannel_file_management`
+* shared node bundle: `rook_managed_file`
+* temporary session-file cleanup via Drupal cron
+* kernel coverage for browser/VPN download access, sidebar visibility and cleanup behavior
 
 ### Reset a local site from the exported configuration
 

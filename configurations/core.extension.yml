@@ -34,6 +34,7 @@ module:
   rook_servicechannel_client_api: 0
   rook_servicechannel_console_api: 0
   rook_servicechannel_core: 0
+  rook_servicechannel_file_management: 0
   rook_servicechannel_gateway_api: 0
   rook_servicechannel_team_ui: 0
   search: 0

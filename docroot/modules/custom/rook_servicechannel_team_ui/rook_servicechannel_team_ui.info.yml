@@ -6,3 +6,4 @@ core_version_requirement: ^11
 dependencies:
   - drupal:user
   - rook_servicechannel_client_api:rook_servicechannel_client_api
+  - rook_servicechannel_file_management:rook_servicechannel_file_management

@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_lifetime
+    - node.type.rook_managed_file
+  module:
+    - options
+id: node.rook_managed_file.field_file_lifetime
+field_name: field_file_lifetime
+entity_type: node
+bundle: rook_managed_file
+label: Lifetime
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: persistent
+default_value_callback: ''
+settings: {  }
+field_type: list_string

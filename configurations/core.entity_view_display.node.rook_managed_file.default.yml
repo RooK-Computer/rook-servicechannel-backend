@@ -1,0 +1,67 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.rook_managed_file.field_file_description
+    - field.field.node.rook_managed_file.field_file_lifetime
+    - field.field.node.rook_managed_file.field_file_shared
+    - field.field.node.rook_managed_file.field_managed_file
+    - field.field.node.rook_managed_file.field_support_session_id
+    - node.type.rook_managed_file
+  module:
+    - file
+    - options
+    - user
+id: node.rook_managed_file.default
+targetEntityType: node
+bundle: rook_managed_file
+mode: default
+content:
+  field_file_description:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_file_lifetime:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_file_shared:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_managed_file:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_support_session_id:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  langcode: true

@@ -1,0 +1,78 @@
+rook_servicechannel_file_management.overview:
+  path: '/servicechannel/files'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_file_management\Controller\FileManagementPageController::overview'
+    _title: 'RooK files'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+
+rook_servicechannel_file_management.upload:
+  path: '/servicechannel/files/upload'
+  defaults:
+    _form: '\Drupal\rook_servicechannel_file_management\Form\PersistentFileUploadForm'
+    _title: 'Upload persistent file'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+
+rook_servicechannel_file_management.edit:
+  path: '/servicechannel/files/{node}/edit'
+  defaults:
+    _form: '\Drupal\rook_servicechannel_file_management\Form\PersistentFileEditForm'
+    _title: 'Edit file'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+
+rook_servicechannel_file_management.replace:
+  path: '/servicechannel/files/{node}/replace'
+  defaults:
+    _form: '\Drupal\rook_servicechannel_file_management\Form\PersistentFileReplaceForm'
+    _title: 'Replace file'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+
+rook_servicechannel_file_management.delete:
+  path: '/servicechannel/files/{node}/delete'
+  defaults:
+    _form: '\Drupal\rook_servicechannel_file_management\Form\ManagedFileDeleteForm'
+    _title: 'Delete file'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+
+rook_servicechannel_file_management.download:
+  path: '/servicechannel/files/{node}/download'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_file_management\Controller\FileDownloadController::download'
+  requirements:
+    _permission: 'access content'
+
+rook_servicechannel_file_management.team_ui.list:
+  path: '/api/client/1/files/list'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_file_management\Controller\TeamUiFileController::list'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+  methods: [POST]
+
+rook_servicechannel_file_management.team_ui.upload:
+  path: '/api/client/1/files/session-upload'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_file_management\Controller\TeamUiFileController::upload'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+  methods: [POST]
+
+rook_servicechannel_file_management.team_ui.delete:
+  path: '/api/client/1/files/delete'
+  defaults:
+    _controller: '\Drupal\rook_servicechannel_file_management\Controller\TeamUiFileController::delete'
+  requirements:
+    _role: 'service'
+    _permission: 'access rook file management'
+  methods: [POST]

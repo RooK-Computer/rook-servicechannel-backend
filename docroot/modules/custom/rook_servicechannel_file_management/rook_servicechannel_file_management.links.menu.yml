@@ -1,0 +1,6 @@
+rook_servicechannel_file_management.overview:
+  title: 'RooK files'
+  description: 'Manage persistent files and shared downloads for Service users.'
+  route_name: rook_servicechannel_file_management.overview
+  menu_name: main
+  weight: -95

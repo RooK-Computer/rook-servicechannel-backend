@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ */
+function rook_servicechannel_file_management_node_access(NodeInterface $node, string $op, AccountInterface $account): AccessResult {
+  /** @var \Drupal\rook_servicechannel_file_management\Service\ManagedFileAccessManager $access_manager */
+  $access_manager = \Drupal::service('rook_servicechannel_file_management.access_manager');
+  return $access_manager->getNodeAccessResult($node, $op, $account);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function rook_servicechannel_file_management_cron(): void {
+  /** @var \Drupal\rook_servicechannel_file_management\Service\ManagedFileManager $manager */
+  $manager = \Drupal::service('rook_servicechannel_file_management.managed_file_manager');
+  $manager->cleanupClosedSessionFiles();
+}

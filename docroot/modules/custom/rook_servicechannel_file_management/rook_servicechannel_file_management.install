@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Ensures the Service role includes file management access.
+ */
+function _rook_servicechannel_file_management_ensure_service_role_permission(): void {
+  $role = Role::load('service');
+  if ($role === NULL) {
+    return;
+  }
+
+  if (!$role->hasPermission('access rook file management')) {
+    $role->grantPermission('access rook file management');
+    $role->save();
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function rook_servicechannel_file_management_install(): void {
+  _rook_servicechannel_file_management_ensure_service_role_permission();
+}
+
+/**
+ * Ensures upgraded sites receive the new file management permission.
+ */
+function rook_servicechannel_file_management_update_11001(): void {
+  _rook_servicechannel_file_management_ensure_service_role_permission();
+}
+
+/**
+ * Removes permissive default trusted download CIDRs from existing installs.
+ */
+function rook_servicechannel_file_management_update_11002(): void {
+  $config = \Drupal::configFactory()->getEditable('rook_servicechannel_file_management.settings');
+  $current = $config->get('trusted_download_cidrs');
+  $legacy_defaults = [
+    '127.0.0.1/32',
+    '10.0.0.0/8',
+    '172.16.0.0/12',
+    '192.168.0.0/16',
+    '100.64.0.0/10',
+  ];
+
+  if ($current === $legacy_defaults) {
+    $config->set('trusted_download_cidrs', [])->save();
+  }
+}

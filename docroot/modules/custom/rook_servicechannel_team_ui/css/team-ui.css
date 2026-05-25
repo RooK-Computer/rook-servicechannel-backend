@@ -120,8 +120,16 @@
   margin-top: 1.25rem;
   padding: 0.85rem 1rem;
   border-radius: 0.5rem;
+}
+
+.rook-team-ui__message--error {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.rook-team-ui__message--info {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .rook-team-ui__hint {
@@ -184,6 +192,94 @@
   overflow-y: auto;
 }
 
+.rook-team-ui__file-toolbar,
+.rook-team-ui__file-upload,
+.rook-team-ui__file-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rook-team-ui__file-upload,
+.rook-team-ui__file-section {
+  margin-top: 1.5rem;
+}
+
+.rook-team-ui__file-section-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rook-team-ui__file-count {
+  display: inline-flex;
+  min-width: 2rem;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.rook-team-ui__file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rook-team-ui__file-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+}
+
+.rook-team-ui__file-copy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.rook-team-ui__file-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rook-team-ui__file-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.1rem 0.65rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.rook-team-ui__file-name,
+.rook-team-ui__file-description,
+.rook-team-ui__file-meta {
+  color: #475569;
+}
+
+.rook-team-ui__file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
 @media (max-width: 960px) {
   .rook-team-ui__actions {
     display: grid;
@@ -191,5 +287,9 @@
 
   .rook-team-ui__facts {
     grid-template-columns: 1fr;
+  }
+
+  .rook-team-ui__file-item {
+    display: grid;
   }
 }

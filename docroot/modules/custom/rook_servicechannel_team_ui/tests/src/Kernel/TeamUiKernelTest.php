@@ -26,10 +26,14 @@ final class TeamUiKernelTest extends KernelTestBase {
     'system',
     'user',
     'field',
+    'file',
     'filter',
+    'node',
+    'options',
     'text',
     'rook_servicechannel_core',
     'rook_servicechannel_client_api',
+    'rook_servicechannel_file_management',
     'rook_servicechannel_team_ui',
   ];
 

@@ -1,0 +1,10 @@
+rook_servicechannel_file_management.settings:
+  type: config_object
+  label: 'RooK file management settings'
+  mapping:
+    trusted_download_cidrs:
+      type: sequence
+      label: 'Trusted VPN download CIDRs'
+      sequence:
+        type: string
+        label: 'CIDR'

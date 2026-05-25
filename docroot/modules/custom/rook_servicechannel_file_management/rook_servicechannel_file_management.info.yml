@@ -1,0 +1,11 @@
+name: 'RooK Service Channel File Management'
+type: module
+description: 'Managed files, downloads and Service-side file workflows for the RooK Service Channel.'
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:file
+  - drupal:node
+  - drupal:options
+  - drupal:user
+  - rook_servicechannel_core:rook_servicechannel_core

@@ -5,12 +5,33 @@ type RuntimeSettings = {
   pinLookupUrl: string;
   sessionStatusUrl: string;
   requestShellUrl: string;
+  fileListUrl: string;
+  fileUploadUrl: string;
+  fileDeleteUrl: string;
   gatewayBaseUrl: string;
   gatewayTerminalPath: string;
 };
 
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 type JsonObject = { [key: string]: JsonValue };
+type MessageTone = 'error' | 'info';
+type ManagedFileRecord = {
+  id: number;
+  title: string;
+  filename: string;
+  description: string;
+  downloadPath: string;
+  lifetime: string;
+  origin: string;
+  shared: boolean;
+  createdAt: number;
+  changedAt: number;
+  ownerId: number;
+  canDelete: boolean;
+  canEdit: boolean;
+  canReplace: boolean;
+  sessionId: number | null;
+};
 
 type DrupalBehaviorHost = {
   behaviors: Record<string, { attach(context: ParentNode): void }>;
@@ -45,6 +66,9 @@ const DEFAULT_SETTINGS: RuntimeSettings = {
   pinLookupUrl: '/api/client/1/pinlookup',
   sessionStatusUrl: '/api/client/1/sessionstatus',
   requestShellUrl: '/api/client/1/requestshell',
+  fileListUrl: '/api/client/1/files/list',
+  fileUploadUrl: '/api/client/1/files/session-upload',
+  fileDeleteUrl: '/api/client/1/files/delete',
   gatewayBaseUrl: '',
   gatewayTerminalPath: '/gateway/terminal',
 };
@@ -58,12 +82,18 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
   const [apiState, setApiState] = useState('Idle');
   const [sessionStatus, setSessionStatus] = useState('Unknown');
   const [terminalState, setTerminalState] = useState('Disconnected');
+  const [fileState, setFileState] = useState('Loading files');
+  const [fileSearch, setFileSearch] = useState('');
+  const [files, setFiles] = useState<ManagedFileRecord[]>([]);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<MessageTone>('info');
   const [debugOpen, setDebugOpen] = useState(false);
 
   const terminalCardRef = useRef<HTMLElement | null>(null);
   const terminalElementRef = useRef<HTMLDivElement | null>(null);
   const terminalShellRef = useRef<HTMLDivElement | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const terminalRef = useRef<TerminalInstance | null>(null);
   const fitAddonRef = useRef<FitAddonInstance | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
@@ -222,6 +252,12 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
 
   const clearMessage = () => {
     setMessage('');
+    setMessageTone('info');
+  };
+
+  const showMessage = (nextMessage: string, tone: MessageTone = 'error') => {
+    setMessage(nextMessage);
+    setMessageTone(tone);
   };
 
   const disconnectGateway = (reason: string) => {
@@ -250,13 +286,97 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
       setSessionKnown(nextStatus !== null);
       setSessionStatus(nextStatus ?? 'Unknown');
       setApiState('Ready');
+      await loadFiles(pin, fileSearch);
     }
     catch (error) {
       setSessionKnown(false);
       setSessionStatus('Unknown');
       setApiState('Request failed');
-      setMessage(getErrorMessage(error));
+      showMessage(getErrorMessage(error));
     }
+  };
+
+  const loadFiles = async (nextPin: string = pin, nextSearch: string = fileSearch) => {
+    setFileState('Loading files');
+
+    try {
+      const response = await postJson(settings.fileListUrl, {
+        pin: nextPin.trim(),
+        search: nextSearch.trim(),
+      });
+
+      setFiles(getFilesFromResponse(response));
+      setFileState('Ready');
+    }
+    catch (error) {
+      setFileState('File list failed');
+      showMessage(getErrorMessage(error));
+    }
+  };
+
+  useEffect(() => {
+    void loadFiles(pin, fileSearch);
+  }, [pin, fileSearch]);
+
+  const uploadSessionFile = async () => {
+    clearMessage();
+    setFileState('Uploading session file');
+
+    try {
+      if (uploadFile === null) {
+        throw new Error('Choose a file to upload first.');
+      }
+
+      const nextPin = requirePin(pin);
+      const body = new FormData();
+      body.append('pin', nextPin);
+      body.append('file', uploadFile);
+      await postMultipart(settings.fileUploadUrl, body);
+
+      setUploadFile(null);
+      if (uploadInputRef.current) {
+        uploadInputRef.current.value = '';
+      }
+
+      await loadFiles(nextPin, fileSearch);
+      setFileState('Ready');
+      showMessage('Session file uploaded.', 'info');
+    }
+    catch (error) {
+      setFileState('Upload failed');
+      showMessage(getErrorMessage(error));
+    }
+  };
+
+  const deleteFile = async (fileId: number) => {
+    clearMessage();
+    setFileState('Deleting file');
+
+    try {
+      await postJson(settings.fileDeleteUrl, { fileId });
+      await loadFiles(pin, fileSearch);
+      setFileState('Ready');
+      showMessage('File deleted.', 'info');
+    }
+    catch (error) {
+      setFileState('Delete failed');
+      showMessage(getErrorMessage(error));
+    }
+  };
+
+  const pasteCurlCommand = (file: ManagedFileRecord) => {
+    const socket = socketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN || !authorizedRef.current) {
+      showMessage('Connect the browser terminal first to paste a curl command.');
+      return;
+    }
+
+    sendFrame(socket, {
+      type: 'input',
+      data: `${buildCurlCommand(settings, file.downloadPath)}`,
+    });
+    terminalRef.current?.focus();
+    showMessage('Curl command inserted into the terminal.', 'info');
   };
 
   const connectGateway = async (token: string) => {
@@ -300,7 +420,7 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
           syncTerminalLayout();
         },
         (nextMessage) => {
-          setMessage(nextMessage);
+          showMessage(nextMessage);
         },
         (nextState) => {
           setTerminalState(nextState);
@@ -310,7 +430,7 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
     });
 
     socket.addEventListener('error', () => {
-      setMessage('The browser terminal failed to communicate with the gateway.');
+      showMessage('The browser terminal failed to communicate with the gateway.');
     });
 
     socket.addEventListener('close', (event) => {
@@ -327,6 +447,9 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
   const isConnected = socketRef.current?.readyState === WebSocket.OPEN && authorizedRef.current;
   const isConnecting = socketRef.current?.readyState === WebSocket.CONNECTING;
   const isAuthorizing = socketRef.current?.readyState === WebSocket.OPEN && !authorizedRef.current;
+  const ownPersistentFiles = files.filter((file) => file.origin === 'mine');
+  const sharedFiles = files.filter((file) => file.origin === 'shared');
+  const sessionFiles = files.filter((file) => file.origin === 'session');
 
   return (
     <section className="rook-team-ui">
@@ -431,7 +554,7 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
             </div>
           </form>
 
-          {message !== '' && <div className="rook-team-ui__message" role="alert">{message}</div>}
+          {message !== '' && <div className={`rook-team-ui__message rook-team-ui__message--${messageTone}`} role="alert">{message}</div>}
 
           {debugOpen && (
             <section className="rook-team-ui__debug" aria-label="Runtime diagnostics">
@@ -459,6 +582,76 @@ function TeamUiApp({ settings }: { settings: RuntimeSettings }): React.JSX.Eleme
               </dl>
             </section>
           )}
+        </section>
+
+        <section className="rook-team-ui__card">
+          <div className="rook-team-ui__section-head">
+            <div>
+              <h2 className="rook-team-ui__section-title">Files sidebar</h2>
+              <p className="rook-team-ui__hint">
+                Search your persistent files, shared files, and your own temporary files for the current session.
+              </p>
+            </div>
+            <div className="rook-team-ui__status-chip">{fileState}</div>
+          </div>
+
+          <div className="rook-team-ui__file-toolbar">
+            <label className="rook-team-ui__label" htmlFor="rook-team-ui-file-search">Search files</label>
+            <input
+              id="rook-team-ui-file-search"
+              className="rook-team-ui__input"
+              type="search"
+              value={fileSearch}
+              onChange={(event) => setFileSearch(event.currentTarget.value)}
+              placeholder="Search title or filename"
+            />
+          </div>
+
+          <div className="rook-team-ui__file-upload">
+            <label className="rook-team-ui__label" htmlFor="rook-team-ui-upload">Upload session file</label>
+            <div className="rook-team-ui__actions">
+              <input
+                id="rook-team-ui-upload"
+                ref={uploadInputRef}
+                className="rook-team-ui__input"
+                type="file"
+                onChange={(event) => {
+                  setUploadFile(event.currentTarget.files?.[0] ?? null);
+                  clearMessage();
+                }}
+              />
+              <button
+                className="button"
+                type="button"
+                disabled={uploadFile === null || pin === '' || !sessionKnown}
+                onClick={async () => {
+                  await uploadSessionFile();
+                }}
+              >
+                Upload to session
+              </button>
+            </div>
+            <p className="rook-team-ui__hint">Session uploads need a linked session and stay visible only for you.</p>
+          </div>
+
+          <FileSection
+            title="My persistent files"
+            files={ownPersistentFiles}
+            onInsert={pasteCurlCommand}
+            onDelete={deleteFile}
+          />
+          <FileSection
+            title="Shared files"
+            files={sharedFiles}
+            onInsert={pasteCurlCommand}
+            onDelete={deleteFile}
+          />
+          <FileSection
+            title="Current session files"
+            files={sessionFiles}
+            onInsert={pasteCurlCommand}
+            onDelete={deleteFile}
+          />
         </section>
 
         <section className="rook-team-ui__card rook-team-ui__card--terminal" ref={terminalCardRef}>
@@ -592,6 +785,34 @@ async function postJson(url: string, payload: JsonObject): Promise<JsonObject> {
   return decoded;
 }
 
+async function postMultipart(url: string, body: FormData): Promise<JsonObject> {
+  const response = await fetch(url, {
+    method: 'POST',
+    body,
+    credentials: 'same-origin',
+  });
+
+  let decoded: JsonObject = {};
+
+  try {
+    const parsed = JSON.parse(await response.text()) as JsonValue;
+    decoded = typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed as JsonObject : {};
+  }
+  catch {
+    decoded = {};
+  }
+
+  if (!response.ok) {
+    const message = typeof decoded.message === 'string' && decoded.message !== ''
+      ? decoded.message
+      : `Request failed with HTTP ${response.status}.`;
+
+    throw new Error(message);
+  }
+
+  return decoded;
+}
+
 function requirePin(pin: string): string {
   const nextPin = pin.trim();
   if (nextPin === '') {
@@ -608,6 +829,42 @@ function getSessionStatusFromResponse(response: JsonObject): string | null {
   }
 
   return typeof session.status === 'string' ? session.status : null;
+}
+
+function getFilesFromResponse(response: JsonObject): ManagedFileRecord[] {
+  const files = response.files;
+  if (!Array.isArray(files)) {
+    return [];
+  }
+
+  return files.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return [];
+    }
+
+    const candidate = entry as Record<string, unknown>;
+    if (typeof candidate.id !== 'number' || typeof candidate.title !== 'string' || typeof candidate.filename !== 'string' || typeof candidate.downloadPath !== 'string') {
+      return [];
+    }
+
+    return [{
+      id: candidate.id,
+      title: candidate.title,
+      filename: candidate.filename,
+      description: typeof candidate.description === 'string' ? candidate.description : '',
+      downloadPath: candidate.downloadPath,
+      lifetime: typeof candidate.lifetime === 'string' ? candidate.lifetime : '',
+      origin: typeof candidate.origin === 'string' ? candidate.origin : '',
+      shared: candidate.shared === true,
+      createdAt: typeof candidate.createdAt === 'number' ? candidate.createdAt : 0,
+      changedAt: typeof candidate.changedAt === 'number' ? candidate.changedAt : 0,
+      ownerId: typeof candidate.ownerId === 'number' ? candidate.ownerId : 0,
+      canDelete: candidate.canDelete === true,
+      canEdit: candidate.canEdit === true,
+      canReplace: candidate.canReplace === true,
+      sessionId: typeof candidate.sessionId === 'number' ? candidate.sessionId : null,
+    }];
+  });
 }
 
 function buildGatewayTarget(settings: RuntimeSettings): WebSocketTarget {
@@ -629,6 +886,36 @@ function buildGatewayTarget(settings: RuntimeSettings): WebSocketTarget {
   url.hash = '';
 
   return { url: url.toString() };
+}
+
+function buildCurlCommand(settings: RuntimeSettings, downloadPath: string): string {
+  const downloadUrl = new URL(downloadPath, buildDownloadBaseUrl(settings)).toString();
+  return `curl --fail --location --remote-name --remote-header-name --no-clobber ${shellQuote(downloadUrl)}`;
+}
+
+function buildDownloadBaseUrl(settings: RuntimeSettings): string {
+  const origin = settings.gatewayBaseUrl || window.location.origin;
+  const url = new URL(origin, window.location.origin);
+
+  if (url.protocol === 'ws:') {
+    url.protocol = 'http:';
+  }
+  else if (url.protocol === 'wss:') {
+    url.protocol = 'https:';
+  }
+  else if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('The configured gateway URL must start with http://, https://, ws:// or wss://.');
+  }
+
+  url.pathname = '/';
+  url.search = '';
+  url.hash = '';
+
+  return url.toString();
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, '\'\"\'\"\'' )}'`;
 }
 
 function normalizePath(path: string): string {
@@ -697,6 +984,75 @@ function getErrorMessage(error: unknown): string {
   }
 
   return 'An unexpected error occurred.';
+}
+
+function FileSection(
+  {
+    title,
+    files,
+    onInsert,
+    onDelete,
+  }: {
+    title: string;
+    files: ManagedFileRecord[];
+    onInsert: (file: ManagedFileRecord) => void;
+    onDelete: (fileId: number) => Promise<void>;
+  },
+): React.JSX.Element {
+  return (
+    <section className="rook-team-ui__file-section">
+      <div className="rook-team-ui__section-head">
+        <h3 className="rook-team-ui__file-section-title">{title}</h3>
+        <span className="rook-team-ui__file-count">{files.length}</span>
+      </div>
+
+      {files.length === 0 ? (
+        <p className="rook-team-ui__hint">No files in this section.</p>
+      ) : (
+        <ul className="rook-team-ui__file-list">
+          {files.map((file) => (
+            <li key={file.id} className="rook-team-ui__file-item">
+              <div className="rook-team-ui__file-copy">
+                <div className="rook-team-ui__file-title-row">
+                  <strong>{file.title}</strong>
+                  <span className="rook-team-ui__file-badge">{file.origin}</span>
+                  <span className="rook-team-ui__file-badge">{file.lifetime}</span>
+                </div>
+                <div className="rook-team-ui__file-name">{file.filename}</div>
+                {file.description !== '' && <div className="rook-team-ui__file-description">{file.description}</div>}
+                <div className="rook-team-ui__file-meta">Updated {formatTimestamp(file.changedAt)}</div>
+              </div>
+              <div className="rook-team-ui__file-actions">
+                <button className="button button--small" type="button" onClick={() => onInsert(file)}>Insert curl</button>
+                {file.canDelete && (
+                  <button
+                    className="button button--small"
+                    type="button"
+                    onClick={async () => {
+                      await onDelete(file.id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function formatTimestamp(timestamp: number): string {
+  if (!timestamp) {
+    return 'unknown';
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(timestamp * 1000));
 }
 
 Drupal.behaviors.rookServicechannelTeamUi = {

@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_support_session_id
+    - node.type.rook_managed_file
+id: node.rook_managed_file.field_support_session_id
+field_name: field_support_session_id
+entity_type: node
+bundle: rook_managed_file
+label: 'Support session ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

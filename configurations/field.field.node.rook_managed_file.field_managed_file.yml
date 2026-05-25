@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_managed_file
+    - node.type.rook_managed_file
+  module:
+    - file
+id: node.rook_managed_file.field_managed_file
+field_name: field_managed_file
+entity_type: node
+bundle: rook_managed_file
+label: File
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: rook-servicechannel/[date:custom:Y]/[date:custom:m]
+  file_extensions: ''
+  max_filesize: ''
+  description_field: false
+field_type: file

@@ -26,5 +26,11 @@ RUN apt-get update \
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY .docker/php/vhost.conf /etc/apache2/sites-available/000-default.conf
 COPY .docker/php/php.ini /usr/local/etc/php/conf.d/rook.ini
+COPY .docker/php/docker-entrypoint.sh /usr/local/bin/rook-docker-entrypoint
+
+RUN chmod +x /usr/local/bin/rook-docker-entrypoint
 
 WORKDIR /var/www/html
+
+ENTRYPOINT ["rook-docker-entrypoint"]
+CMD ["apache2-foreground"]

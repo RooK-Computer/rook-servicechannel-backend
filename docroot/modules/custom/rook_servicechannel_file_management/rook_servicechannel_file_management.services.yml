@@ -1,0 +1,12 @@
+services:
+  rook_servicechannel_file_management.access_manager:
+    class: Drupal\rook_servicechannel_file_management\Service\ManagedFileAccessManager
+    arguments: ['@entity_type.manager']
+
+  rook_servicechannel_file_management.vpn_trust_resolver:
+    class: Drupal\rook_servicechannel_file_management\Service\VpnTrustResolver
+    arguments: ['@module_handler', '@?rook_servicechannel_console_ip_guard.access_check']
+
+  rook_servicechannel_file_management.managed_file_manager:
+    class: Drupal\rook_servicechannel_file_management\Service\ManagedFileManager
+    arguments: ['@entity_type.manager', '@datetime.time', '@file_system', '@file.repository', '@rook_servicechannel_file_management.access_manager', '@rook_servicechannel_core.audit_log_writer']

@@ -21729,6 +21729,9 @@
         pinLookupUrl: "/api/client/1/pinlookup",
         sessionStatusUrl: "/api/client/1/sessionstatus",
         requestShellUrl: "/api/client/1/requestshell",
+        fileListUrl: "/api/client/1/files/list",
+        fileUploadUrl: "/api/client/1/files/session-upload",
+        fileDeleteUrl: "/api/client/1/files/delete",
         gatewayBaseUrl: "",
         gatewayTerminalPath: "/gateway/terminal"
       };
@@ -21741,11 +21744,17 @@
         const [apiState, setApiState] = (0, import_react.useState)("Idle");
         const [sessionStatus, setSessionStatus] = (0, import_react.useState)("Unknown");
         const [terminalState, setTerminalState] = (0, import_react.useState)("Disconnected");
+        const [fileState, setFileState] = (0, import_react.useState)("Loading files");
+        const [fileSearch, setFileSearch] = (0, import_react.useState)("");
+        const [files, setFiles] = (0, import_react.useState)([]);
+        const [uploadFile, setUploadFile] = (0, import_react.useState)(null);
         const [message, setMessage] = (0, import_react.useState)("");
+        const [messageTone, setMessageTone] = (0, import_react.useState)("info");
         const [debugOpen, setDebugOpen] = (0, import_react.useState)(false);
         const terminalCardRef = (0, import_react.useRef)(null);
         const terminalElementRef = (0, import_react.useRef)(null);
         const terminalShellRef = (0, import_react.useRef)(null);
+        const uploadInputRef = (0, import_react.useRef)(null);
         const terminalRef = (0, import_react.useRef)(null);
         const fitAddonRef = (0, import_react.useRef)(null);
         const socketRef = (0, import_react.useRef)(null);
@@ -21876,6 +21885,11 @@
         }, [debugOpen]);
         const clearMessage = () => {
           setMessage("");
+          setMessageTone("info");
+        };
+        const showMessage = (nextMessage, tone = "error") => {
+          setMessage(nextMessage);
+          setMessageTone(tone);
         };
         const disconnectGateway = (reason) => {
           disconnectReasonRef.current = reason || "Disconnected";
@@ -21897,12 +21911,80 @@
             setSessionKnown(nextStatus !== null);
             setSessionStatus(nextStatus ?? "Unknown");
             setApiState("Ready");
+            await loadFiles(pin, fileSearch);
           } catch (error) {
             setSessionKnown(false);
             setSessionStatus("Unknown");
             setApiState("Request failed");
-            setMessage(getErrorMessage(error));
+            showMessage(getErrorMessage(error));
           }
+        };
+        const loadFiles = async (nextPin = pin, nextSearch = fileSearch) => {
+          setFileState("Loading files");
+          try {
+            const response = await postJson(settings.fileListUrl, {
+              pin: nextPin.trim(),
+              search: nextSearch.trim()
+            });
+            setFiles(getFilesFromResponse(response));
+            setFileState("Ready");
+          } catch (error) {
+            setFileState("File list failed");
+            showMessage(getErrorMessage(error));
+          }
+        };
+        (0, import_react.useEffect)(() => {
+          void loadFiles(pin, fileSearch);
+        }, [pin, fileSearch]);
+        const uploadSessionFile = async () => {
+          clearMessage();
+          setFileState("Uploading session file");
+          try {
+            if (uploadFile === null) {
+              throw new Error("Choose a file to upload first.");
+            }
+            const nextPin = requirePin(pin);
+            const body = new FormData();
+            body.append("pin", nextPin);
+            body.append("file", uploadFile);
+            await postMultipart(settings.fileUploadUrl, body);
+            setUploadFile(null);
+            if (uploadInputRef.current) {
+              uploadInputRef.current.value = "";
+            }
+            await loadFiles(nextPin, fileSearch);
+            setFileState("Ready");
+            showMessage("Session file uploaded.", "info");
+          } catch (error) {
+            setFileState("Upload failed");
+            showMessage(getErrorMessage(error));
+          }
+        };
+        const deleteFile = async (fileId) => {
+          clearMessage();
+          setFileState("Deleting file");
+          try {
+            await postJson(settings.fileDeleteUrl, { fileId });
+            await loadFiles(pin, fileSearch);
+            setFileState("Ready");
+            showMessage("File deleted.", "info");
+          } catch (error) {
+            setFileState("Delete failed");
+            showMessage(getErrorMessage(error));
+          }
+        };
+        const pasteCurlCommand = (file) => {
+          const socket = socketRef.current;
+          if (!socket || socket.readyState !== WebSocket.OPEN || !authorizedRef.current) {
+            showMessage("Connect the browser terminal first to paste a curl command.");
+            return;
+          }
+          sendFrame(socket, {
+            type: "input",
+            data: `${buildCurlCommand(settings, file.downloadPath)}`
+          });
+          terminalRef.current?.focus();
+          showMessage("Curl command inserted into the terminal.", "info");
         };
         const connectGateway = async (token) => {
           const terminal = terminalRef.current;
@@ -21939,7 +22021,7 @@
                 syncTerminalLayout();
               },
               (nextMessage) => {
-                setMessage(nextMessage);
+                showMessage(nextMessage);
               },
               (nextState) => {
                 setTerminalState(nextState);
@@ -21948,7 +22030,7 @@
             );
           });
           socket.addEventListener("error", () => {
-            setMessage("The browser terminal failed to communicate with the gateway.");
+            showMessage("The browser terminal failed to communicate with the gateway.");
           });
           socket.addEventListener("close", (event) => {
             socketRef.current = null;
@@ -21962,6 +22044,9 @@
         const isConnected = socketRef.current?.readyState === WebSocket.OPEN && authorizedRef.current;
         const isConnecting = socketRef.current?.readyState === WebSocket.CONNECTING;
         const isAuthorizing = socketRef.current?.readyState === WebSocket.OPEN && !authorizedRef.current;
+        const ownPersistentFiles = files.filter((file) => file.origin === "mine");
+        const sharedFiles = files.filter((file) => file.origin === "shared");
+        const sessionFiles = files.filter((file) => file.origin === "session");
         return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui", children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { className: "rook-team-ui__header", children: [
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "rook-team-ui__eyebrow", children: "Service workspace" }),
@@ -22067,7 +22152,7 @@
                   ]
                 }
               ),
-              message !== "" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__message", role: "alert", children: message }),
+              message !== "" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: `rook-team-ui__message rook-team-ui__message--${messageTone}`, role: "alert", children: message }),
               debugOpen && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", { className: "rook-team-ui__debug", "aria-label": "Runtime diagnostics", children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dl", { className: "rook-team-ui__facts", children: [
                 /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("dt", { children: "API state" }),
@@ -22090,6 +22175,87 @@
                   /* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", { children: gatewayTarget.url })
                 ] })
               ] }) })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", { className: "rook-team-ui__section-title", children: "Files sidebar" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "rook-team-ui__hint", children: "Search your persistent files, shared files, and your own temporary files for the current session." })
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__status-chip", children: fileState })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__file-toolbar", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", { className: "rook-team-ui__label", htmlFor: "rook-team-ui-file-search", children: "Search files" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                  "input",
+                  {
+                    id: "rook-team-ui-file-search",
+                    className: "rook-team-ui__input",
+                    type: "search",
+                    value: fileSearch,
+                    onChange: (event) => setFileSearch(event.currentTarget.value),
+                    placeholder: "Search title or filename"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__file-upload", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", { className: "rook-team-ui__label", htmlFor: "rook-team-ui-upload", children: "Upload session file" }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__actions", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                    "input",
+                    {
+                      id: "rook-team-ui-upload",
+                      ref: uploadInputRef,
+                      className: "rook-team-ui__input",
+                      type: "file",
+                      onChange: (event) => {
+                        setUploadFile(event.currentTarget.files?.[0] ?? null);
+                        clearMessage();
+                      }
+                    }
+                  ),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                    "button",
+                    {
+                      className: "button",
+                      type: "button",
+                      disabled: uploadFile === null || pin === "" || !sessionKnown,
+                      onClick: async () => {
+                        await uploadSessionFile();
+                      },
+                      children: "Upload to session"
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "rook-team-ui__hint", children: "Session uploads need a linked session and stay visible only for you." })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                FileSection,
+                {
+                  title: "My persistent files",
+                  files: ownPersistentFiles,
+                  onInsert: pasteCurlCommand,
+                  onDelete: deleteFile
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                FileSection,
+                {
+                  title: "Shared files",
+                  files: sharedFiles,
+                  onInsert: pasteCurlCommand,
+                  onDelete: deleteFile
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                FileSection,
+                {
+                  title: "Current session files",
+                  files: sessionFiles,
+                  onInsert: pasteCurlCommand,
+                  onDelete: deleteFile
+                }
+              )
             ] }),
             /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__card rook-team-ui__card--terminal", ref: terminalCardRef, children: [
               /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head rook-team-ui__section-head--terminal", children: [
@@ -22181,6 +22347,25 @@
         }
         return decoded;
       }
+      async function postMultipart(url, body) {
+        const response = await fetch(url, {
+          method: "POST",
+          body,
+          credentials: "same-origin"
+        });
+        let decoded = {};
+        try {
+          const parsed = JSON.parse(await response.text());
+          decoded = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+        } catch {
+          decoded = {};
+        }
+        if (!response.ok) {
+          const message = typeof decoded.message === "string" && decoded.message !== "" ? decoded.message : `Request failed with HTTP ${response.status}.`;
+          throw new Error(message);
+        }
+        return decoded;
+      }
       function requirePin(pin) {
         const nextPin = pin.trim();
         if (nextPin === "") {
@@ -22194,6 +22379,38 @@
           return null;
         }
         return typeof session.status === "string" ? session.status : null;
+      }
+      function getFilesFromResponse(response) {
+        const files = response.files;
+        if (!Array.isArray(files)) {
+          return [];
+        }
+        return files.flatMap((entry) => {
+          if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+            return [];
+          }
+          const candidate = entry;
+          if (typeof candidate.id !== "number" || typeof candidate.title !== "string" || typeof candidate.filename !== "string" || typeof candidate.downloadPath !== "string") {
+            return [];
+          }
+          return [{
+            id: candidate.id,
+            title: candidate.title,
+            filename: candidate.filename,
+            description: typeof candidate.description === "string" ? candidate.description : "",
+            downloadPath: candidate.downloadPath,
+            lifetime: typeof candidate.lifetime === "string" ? candidate.lifetime : "",
+            origin: typeof candidate.origin === "string" ? candidate.origin : "",
+            shared: candidate.shared === true,
+            createdAt: typeof candidate.createdAt === "number" ? candidate.createdAt : 0,
+            changedAt: typeof candidate.changedAt === "number" ? candidate.changedAt : 0,
+            ownerId: typeof candidate.ownerId === "number" ? candidate.ownerId : 0,
+            canDelete: candidate.canDelete === true,
+            canEdit: candidate.canEdit === true,
+            canReplace: candidate.canReplace === true,
+            sessionId: typeof candidate.sessionId === "number" ? candidate.sessionId : null
+          }];
+        });
       }
       function buildGatewayTarget(settings) {
         const origin = settings.gatewayBaseUrl || window.location.origin;
@@ -22209,6 +22426,28 @@
         url.search = "";
         url.hash = "";
         return { url: url.toString() };
+      }
+      function buildCurlCommand(settings, downloadPath) {
+        const downloadUrl = new URL(downloadPath, buildDownloadBaseUrl(settings)).toString();
+        return `curl --fail --location --remote-name --remote-header-name --no-clobber ${shellQuote(downloadUrl)}`;
+      }
+      function buildDownloadBaseUrl(settings) {
+        const origin = settings.gatewayBaseUrl || window.location.origin;
+        const url = new URL(origin, window.location.origin);
+        if (url.protocol === "ws:") {
+          url.protocol = "http:";
+        } else if (url.protocol === "wss:") {
+          url.protocol = "https:";
+        } else if (url.protocol !== "http:" && url.protocol !== "https:") {
+          throw new Error("The configured gateway URL must start with http://, https://, ws:// or wss://.");
+        }
+        url.pathname = "/";
+        url.search = "";
+        url.hash = "";
+        return url.toString();
+      }
+      function shellQuote(value) {
+        return `'${value.replace(/'/g, `'"'"'`)}'`;
       }
       function normalizePath(path) {
         if (!path || path === "/") {
@@ -22262,6 +22501,57 @@
           return error.message;
         }
         return "An unexpected error occurred.";
+      }
+      function FileSection({
+        title,
+        files,
+        onInsert,
+        onDelete
+      }) {
+        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "rook-team-ui__file-section", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__section-head", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { className: "rook-team-ui__file-section-title", children: title }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "rook-team-ui__file-count", children: files.length })
+          ] }),
+          files.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "rook-team-ui__hint", children: "No files in this section." }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", { className: "rook-team-ui__file-list", children: files.map((file) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { className: "rook-team-ui__file-item", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__file-copy", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__file-title-row", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: file.title }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "rook-team-ui__file-badge", children: file.origin }),
+                /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "rook-team-ui__file-badge", children: file.lifetime })
+              ] }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__file-name", children: file.filename }),
+              file.description !== "" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "rook-team-ui__file-description", children: file.description }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__file-meta", children: [
+                "Updated ",
+                formatTimestamp(file.changedAt)
+              ] })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "rook-team-ui__file-actions", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { className: "button button--small", type: "button", onClick: () => onInsert(file), children: "Insert curl" }),
+              file.canDelete && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                "button",
+                {
+                  className: "button button--small",
+                  type: "button",
+                  onClick: async () => {
+                    await onDelete(file.id);
+                  },
+                  children: "Delete"
+                }
+              )
+            ] })
+          ] }, file.id)) })
+        ] });
+      }
+      function formatTimestamp(timestamp) {
+        if (!timestamp) {
+          return "unknown";
+        }
+        return new Intl.DateTimeFormat(void 0, {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(new Date(timestamp * 1e3));
       }
       Drupal.behaviors.rookServicechannelTeamUi = {
         attach(context) {

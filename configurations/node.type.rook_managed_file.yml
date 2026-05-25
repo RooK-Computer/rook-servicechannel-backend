@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies: {  }
+name: 'RooK managed file'
+type: rook_managed_file
+description: 'Persistent and session-bound files for the RooK Service Channel.'
+help: null
+new_revision: false
+preview_mode: 0
+display_submitted: false
